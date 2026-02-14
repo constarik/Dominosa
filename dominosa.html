@@ -53,9 +53,17 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 #winBox h2{font-size:1.5rem;margin-bottom:8px;color:var(--correct)}
 #winBox .stars{font-size:2rem;margin:8px 0}
 #winBox .info{color:var(--dim);font-size:0.9rem;margin:4px 0}
-#winBox .btn-row{display:flex;gap:8px;margin-top:16px;justify-content:center}
+#winBox .btn-row{display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap}
 #winBox button{padding:8px 20px;border-radius:8px;border:1px solid var(--cell-border);background:var(--card);color:var(--text);cursor:pointer;font-size:0.9rem}
 #winBox button.primary{background:var(--accent);border-color:var(--accent)}
+.share-row{display:flex;gap:6px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.share-btn{width:40px;height:40px;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:opacity .2s;color:#fff}
+.share-btn:hover{opacity:.8}
+.share-btn.x{background:#000}
+.share-btn.fb{background:#1877f2}
+.share-btn.vk{background:#4c75a3}
+.share-btn.ok{background:#ee8208}
+.share-btn.copy{background:var(--card);color:var(--text);border:1px solid var(--cell-border)}
 .seed-display{color:var(--dim);font-size:0.75rem;text-align:center;margin:2px 0;cursor:pointer}
 .seed-display:hover{color:var(--accent2)}
 .tutorial-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:200;justify-content:center;align-items:center}
@@ -89,7 +97,7 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 </svg>
 <h1>Dominosa</h1>
 </div>
-<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.2</div>
+<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.3</div>
 <div class="subtitle">Find all hidden dominoes</div>
 <div class="controls">
   <button class="primary" onclick="newGame()">New</button>
@@ -146,7 +154,13 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
   <div class="info" id="winMoves"></div>
   <div class="btn-row">
     <button class="primary" onclick="newGame()">New Game</button>
-    <button onclick="shareResult()">&#x1f4e4; Share</button>
+  </div>
+  <div class="share-row">
+    <button class="share-btn x" onclick="shareToX()" title="Share on X">𝕏</button>
+    <button class="share-btn fb" onclick="shareToFB()" title="Share on Facebook">f</button>
+    <button class="share-btn vk" onclick="shareToVK()" title="Поделиться в ВК">ВК</button>
+    <button class="share-btn ok" onclick="shareToOK()" title="Поделиться в ОК">ОК</button>
+    <button class="share-btn copy" onclick="shareResult()" title="Copy">&#x1f4cb;</button>
   </div>
 </div></div>
 
@@ -407,6 +421,7 @@ function initGame(){
 }
 
 function newGame(customSeed){
+  _shortUrl=null;
   seed=customSeed||Math.floor(Date.now()/1000);
   generatePuzzle(seed);
   initGame();
@@ -657,22 +672,51 @@ function makeHash(s,sz,t,m,h){
   v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
   return(v>>>0).toString(36);
 }
-function shareResult(){
+function getShareData(){
   const stars='\u2605'.repeat(calcStars())+'\u2606'.repeat(3-calcStars());
   const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
   const diffIcons={easy:'\ud83d\udfe2',medium:'\ud83d\udfe1',hard:'\ud83d\udd34'};
   const hh=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
   const longUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+hh;
-  const btn=document.querySelector('#winBox .btn-row button:last-child');
-  function feedback(msg){if(btn){const o=btn.textContent;btn.textContent=msg;setTimeout(()=>btn.textContent=o,2000)}}
-  function doShare(url){
-    const t='\ud83d\udd3a I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'')+'\n\nVerify & Play: '+url;
-    if(navigator.share){navigator.share({text:t}).catch(()=>clipCopy(t,feedback))}else{clipCopy(t,feedback)}
-  }
-  feedback('\u23f3...');
-  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(longUrl))
-    .then(r=>r.text()).then(short=>doShare(short.trim()))
-    .catch(()=>doShare(longUrl));
+  const text='\ud83d\udd3a I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'');
+  return {text,longUrl};
+}
+let _shortUrl=null;
+function getShortUrl(cb){
+  const d=getShareData();
+  if(_shortUrl){cb(_shortUrl,d);return;}
+  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(d.longUrl))
+    .then(r=>r.text()).then(s=>{_shortUrl=s.trim();cb(_shortUrl,d)})
+    .catch(()=>cb(d.longUrl,d));
+}
+function shareToX(){
+  getShortUrl(function(url,d){
+    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(d.text+'\n\nVerify & Play: '+url),'_blank');
+  });
+}
+function shareToFB(){
+  getShortUrl(function(url){
+    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),'_blank');
+  });
+}
+function shareToVK(){
+  getShortUrl(function(url,d){
+    window.open('https://vk.com/share.php?url='+encodeURIComponent(url)+'&title='+encodeURIComponent(d.text),'_blank');
+  });
+}
+function shareToOK(){
+  getShortUrl(function(url,d){
+    window.open('https://connect.ok.ru/offer?url='+encodeURIComponent(url)+'&title='+encodeURIComponent(d.text),'_blank');
+  });
+}
+function shareResult(){
+  const copyBtn=document.querySelector('.share-btn.copy');
+  function feedback(msg){if(copyBtn){const o=copyBtn.textContent;copyBtn.textContent=msg;setTimeout(()=>copyBtn.textContent=o,2000)}}
+  feedback('\u23f3');
+  getShortUrl(function(url,d){
+    const t=d.text+'\n\nVerify & Play: '+url;
+    clipCopy(t,feedback);
+  });
 }
 function clipCopy(t,fb){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705 Copied!')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
