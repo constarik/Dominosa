@@ -97,7 +97,7 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 </svg>
 <h1 id="gameTitle">Dominosa</h1>
 </div>
-<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.6</div>
+<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.7</div>
 <div class="subtitle" id="subtitle">Find all hidden dominoes</div>
 <div class="controls">
   <button class="primary" onclick="newGame()" id="btnNew">New</button>
@@ -775,7 +775,9 @@ function shareToX(){
 }
 function shareToFB(){
   getShortUrl(function(url,d){
-    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url)+'&quote='+encodeURIComponent(d.text),'_blank');
+    const t=d.text+'\n\n'+T('shareVerify')+url;
+    clipCopy(t,function(){});
+    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),'_blank');
   });
 }
 function shareToVK(){
