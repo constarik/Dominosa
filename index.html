@@ -72,6 +72,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .footer-cta p{color:var(--dim);margin-bottom:32px;font-size:1rem}
 .footer{padding:24px 20px;text-align:center;color:var(--dim);font-size:.75rem;border-top:1px solid #1e293b}
 .footer a{color:var(--accent2);text-decoration:none}
+/* Verification banner */
+.verify-banner{display:none;margin:0 auto;padding:20px 24px;text-align:center;max-width:600px;border-radius:0 0 16px 16px;animation:slideBanner .5s ease}
+.verify-banner.verified{display:block;background:linear-gradient(135deg,#065f4620,#22c55e20);border:1px solid #22c55e40;border-top:none}
+.verify-banner.failed{display:block;background:linear-gradient(135deg,#7f1d1d20,#ef444420);border:1px solid #ef444440;border-top:none}
+.verify-banner .vb-icon{font-size:2rem;margin-bottom:8px}
+.verify-banner .vb-title{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.verify-banner.verified .vb-title{color:#22c55e}
+.verify-banner.failed .vb-title{color:#ef4444}
+.verify-banner .vb-details{font-size:.9rem;color:var(--dim);line-height:1.6}
+.verify-banner .vb-details b{color:var(--text)}
+.verify-banner .vb-cta{display:inline-block;margin-top:12px;padding:8px 24px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem}
+.verify-banner .vb-cta:hover{background:#2563eb}
+@keyframes slideBanner{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 /* === MOBILE === */
 @media(max-width:500px){
   .demo-grid{grid-template-columns:repeat(6,38px)}
@@ -81,6 +94,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </style>
 </head>
 <body>
+
+<!-- VERIFICATION BANNER -->
+<div id="verifyBanner" class="verify-banner"></div>
 
 <!-- HERO -->
 <section class="hero">
@@ -196,6 +212,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <footer class="footer">
   Dominosa &mdash; an <a href="https://github.com/">Uncloned Math</a> puzzle &bull; No doubles variant
 </footer>
+
+<!-- VERIFICATION -->
+<script>
+(function(){
+  const p=new URLSearchParams(location.search);
+  if(!p.has('v'))return;
+  const seed=+p.get('s'),sz=+p.get('sz'),t=+p.get('t'),m=+p.get('m'),h=+p.get('h'),d=p.get('d'),c=p.get('c');
+  // Reproduce hash
+  function makeHash(s,sz,t,m,h){
+    let v=s^(sz*7919)^(t*6271)^(m*3581)^(h*1049)^0xDEAD;
+    v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
+    return(v>>>0).toString(36);
+  }
+  const valid=makeHash(seed,sz,t,m,h)===c;
+  const banner=document.getElementById('verifyBanner');
+  const sizeNames={10:'4×5',15:'5×6',21:'6×7'};
+  const diffLabels={easy:'Easy',medium:'Medium',hard:'Hard'};
+  const mins=Math.floor(t/60),secs=String(t%60).padStart(2,'0');
+  if(valid){
+    banner.className='verify-banner verified';
+    banner.innerHTML='<div class="vb-icon">✅</div>'+
+      '<div class="vb-title">Result Verified</div>'+
+      '<div class="vb-details">'+
+        '<b>'+sizeNames[sz]+'</b> · '+(diffLabels[d]||d)+'<br>'+
+        '⏱ <b>'+mins+':'+secs+'</b> · <b>'+m+'</b> moves'+(h>0?' · <b>'+h+'</b> hints':'')+'<br>'+
+        'Seed: '+seed+
+      '</div>'+
+      '<a class="vb-cta" href="dominosa.html?seed='+seed+'&size='+({10:4,15:5,21:6}[sz]||5)+'&diff='+d+'">Play the same puzzle</a>';
+  } else {
+    banner.className='verify-banner failed';
+    banner.innerHTML='<div class="vb-icon">❌</div>'+
+      '<div class="vb-title">Verification Failed</div>'+
+      '<div class="vb-details">This result could not be verified. The link may have been modified.</div>'+
+      '<a class="vb-cta" href="dominosa.html">Play Dominosa</a>';
+  }
+  banner.scrollIntoView({behavior:'smooth'});
+})();
+</script>
 
 <!-- DEMO ANIMATION -->
 <script>

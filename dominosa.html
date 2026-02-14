@@ -639,11 +639,18 @@ function showWin(){
 }
 
 // === SHARE ===
+function makeHash(s,sz,t,m,h){
+  let v=seed^(sz*7919)^(t*6271)^(m*3581)^(h*1049)^0xDEAD;
+  v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
+  return(v>>>0).toString(36);
+}
 function shareResult(){
   const stars='\u2605'.repeat(calcStars())+'\u2606'.repeat(3-calcStars());
   const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
   const diffIcons={easy:'\ud83d\udfe2',medium:'\ud83d\udfe1',hard:'\ud83d\udd34'};
-  const t='\ud83c\udc63 Dominosa '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'');
+  const h=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
+  const vUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+h;
+  const t='\ud83e\udde9 I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'')+'\n\nVerify & Play: '+vUrl;
   const btn=document.querySelector('#winBox .btn-row button:last-child');
   function feedback(msg){if(btn){const o=btn.textContent;btn.textContent=msg;setTimeout(()=>btn.textContent=o,2000)}}
   if(navigator.share){navigator.share({text:t}).catch(()=>clipCopy(t,feedback))}else{clipCopy(t,feedback)}
