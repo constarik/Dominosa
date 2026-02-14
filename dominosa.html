@@ -76,7 +76,7 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 </style>
 </head>
 <body>
-<h1>Dominosa</h1>
+<h1>Dominosa <span style="font-size:.5em;opacity:.5">v1.1</span></h1>
 <div class="subtitle">Find all hidden dominoes</div>
 <div class="controls">
   <button class="primary" onclick="newGame()">New</button>
@@ -648,12 +648,18 @@ function shareResult(){
   const stars='\u2605'.repeat(calcStars())+'\u2606'.repeat(3-calcStars());
   const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
   const diffIcons={easy:'\ud83d\udfe2',medium:'\ud83d\udfe1',hard:'\ud83d\udd34'};
-  const h=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
-  const vUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+h;
-  const t='\ud83e\udde9 I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'')+'\n\nVerify & Play: '+vUrl;
+  const hh=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
+  const longUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+hh;
   const btn=document.querySelector('#winBox .btn-row button:last-child');
   function feedback(msg){if(btn){const o=btn.textContent;btn.textContent=msg;setTimeout(()=>btn.textContent=o,2000)}}
-  if(navigator.share){navigator.share({text:t}).catch(()=>clipCopy(t,feedback))}else{clipCopy(t,feedback)}
+  function doShare(url){
+    const t='\ud83e\udde9 I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'')+'\n\nVerify & Play: '+url;
+    if(navigator.share){navigator.share({text:t}).catch(()=>clipCopy(t,feedback))}else{clipCopy(t,feedback)}
+  }
+  feedback('\u23f3...');
+  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(longUrl))
+    .then(r=>r.text()).then(short=>doShare(short.trim()))
+    .catch(()=>doShare(longUrl));
 }
 function clipCopy(t,fb){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705 Copied!')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
