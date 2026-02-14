@@ -95,16 +95,16 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 <polygon points="100,65 120,99.5 154.6,79.5 134.6,45" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
 <circle cx="120.4" cy="76.2" r="3.5" fill="#f1f5f9"/><circle cx="134.2" cy="68.2" r="3.5" fill="#f1f5f9"/>
 </svg>
-<h1>Dominosa</h1>
+<h1 id="gameTitle">Dominosa</h1>
 </div>
-<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.3</div>
-<div class="subtitle">Find all hidden dominoes</div>
+<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.4</div>
+<div class="subtitle" id="subtitle">Find all hidden dominoes</div>
 <div class="controls">
-  <button class="primary" onclick="newGame()">New</button>
-  <button onclick="dailyPuzzle()">&#x1f4c5;</button>
-  <button onclick="giveHint()">&#x1f4a1;</button>
-  <button onclick="undoLast()">&#x21a9;</button>
-  <button onclick="showSolution()">&#x1f441;</button>
+  <button class="primary" onclick="newGame()" id="btnNew">New</button>
+  <button onclick="dailyPuzzle()" title="Daily">&#x1f4c5;</button>
+  <button onclick="giveHint()" title="Hint">&#x1f4a1;</button>
+  <button onclick="undoLast()" title="Undo">&#x21a9;</button>
+  <button onclick="showSolution()" id="btnSolution" title="Solution">&#x1f441;</button>
   <button onclick="showTutorial()">?</button>
 </div>
 <div class="controls settings-row">
@@ -114,10 +114,10 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
     <option value="6">6&#xd7;7</option>
   </select>
   <select id="diffSelect">
-    <option value="any">Any</option>
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
+    <option value="any" id="optAny">Any</option>
+    <option value="easy" id="optEasy">Easy</option>
+    <option value="medium" id="optMedium">Medium</option>
+    <option value="hard" id="optHard">Hard</option>
   </select>
   <select id="themeSelect" onchange="setTheme(this.value)">
     <option value="">Dark</option>
@@ -125,6 +125,10 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
     <option value="forest">Forest</option>
     <option value="sunset">Sunset</option>
     <option value="light">Light</option>
+  </select>
+  <select id="langSelect" onchange="setLang(this.value)">
+    <option value="en">EN</option>
+    <option value="ru">RU</option>
   </select>
 </div>
 <div class="stats">
@@ -135,36 +139,137 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
   <span id="diffLabel"></span>
 </div>
 <div id="board"></div>
-<div id="reference"><div class="ref-title">Domino Set</div><div class="ref-grid" id="refGrid"></div></div>
+<div id="reference"><div class="ref-title" id="refTitle">Domino Set</div><div class="ref-grid" id="refGrid"></div></div>
 <div class="seed-display" id="seedDisplay" onclick="promptSeed()" title="Click to enter seed"></div>
 <div id="tutorialOverlay" class="tutorial-overlay"><div id="tutorialBox" class="tutorial-box">
-  <h2>How to Play</h2>
-  <div class="tut-step"><b>Goal:</b> Find all hidden domino boundaries in the number grid.</div>
-  <div class="tut-step"><b>Tap-Tap:</b> Tap a cell to select it, then tap an adjacent cell to pair them as a domino.</div>
-  <div class="tut-step"><b>Swipe:</b> On mobile, swipe from one cell to its neighbor to pair them.</div>
-  <div class="tut-step"><b>Unpair:</b> Tap a paired cell to remove the pairing.</div>
-  <div class="tut-step"><b>Rule:</b> Each domino (e.g. 2&#x2022;5) appears exactly once. Duplicates are highlighted in red.</div>
-  <div class="tut-step"><b>Tip:</b> Start with pairs that can only go in one place. Use the reference panel below to track used dominoes.</div>
-  <div class="btn-row"><button class="primary" onclick="closeTutorial()">Got it!</button><label><input type="checkbox" id="tutDontShow"> Don't show again</label></div>
+  <h2 id="tutTitle">How to Play</h2>
+  <div class="tut-step" id="tutGoal"><b>Goal:</b> Find all hidden domino boundaries in the number grid.</div>
+  <div class="tut-step" id="tutTap"><b>Tap-Tap:</b> Tap a cell to select it, then tap an adjacent cell to pair them as a domino.</div>
+  <div class="tut-step" id="tutSwipe"><b>Swipe:</b> On mobile, swipe from one cell to its neighbor to pair them.</div>
+  <div class="tut-step" id="tutUnpair"><b>Unpair:</b> Tap a paired cell to remove the pairing.</div>
+  <div class="tut-step" id="tutRule"><b>Rule:</b> Each domino (e.g. 2&#x2022;5) appears exactly once. Duplicates are highlighted in red.</div>
+  <div class="tut-step" id="tutTip"><b>Tip:</b> Start with pairs that can only go in one place. Use the reference panel below to track used dominoes.</div>
+  <div class="btn-row"><button class="primary" onclick="closeTutorial()" id="btnGotIt">Got it!</button><label><input type="checkbox" id="tutDontShow"> <span id="lblDontShow">Don't show again</span></label></div>
 </div></div>
 <div id="winOverlay"><div id="winBox">
-  <h2>&#x1f389; Solved!</h2>
+  <h2 id="winTitle">&#x1f389; Solved!</h2>
   <div class="stars" id="winStars"></div>
   <div class="info" id="winTime"></div>
   <div class="info" id="winMoves"></div>
   <div class="btn-row">
-    <button class="primary" onclick="newGame()">New Game</button>
+    <button class="primary" onclick="newGame()" id="btnNewGame">New Game</button>
   </div>
   <div class="share-row">
-    <button class="share-btn x" onclick="shareToX()" title="Share on X">𝕏</button>
+    <button class="share-btn x" onclick="shareToX()" title="Share on X">&#x1d54f;</button>
     <button class="share-btn fb" onclick="shareToFB()" title="Share on Facebook">f</button>
-    <button class="share-btn vk" onclick="shareToVK()" title="Поделиться в ВК">ВК</button>
-    <button class="share-btn ok" onclick="shareToOK()" title="Поделиться в ОК">ОК</button>
+    <button class="share-btn vk" onclick="shareToVK()" id="btnVK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x412;&#x41a;">&#x412;&#x41a;</button>
+    <button class="share-btn ok" onclick="shareToOK()" id="btnOK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x41e;&#x41a;">&#x41e;&#x41a;</button>
     <button class="share-btn copy" onclick="shareResult()" title="Copy">&#x1f4cb;</button>
   </div>
 </div></div>
 
 <script>
+// === I18N ===
+const L={
+  en:{
+    title:'Dominosa',
+    subtitle:'Find all hidden dominoes',
+    btnNew:'New',
+    any:'Any',easy:'Easy',medium:'Medium',hard:'Hard',
+    refTitle:'Domino Set',
+    seedPrompt:'Enter seed:',
+    tutTitle:'How to Play',
+    tutGoal:'<b>Goal:</b> Find all hidden domino boundaries in the number grid.',
+    tutTap:'<b>Tap-Tap:</b> Tap a cell to select it, then tap an adjacent cell to pair them as a domino.',
+    tutSwipe:'<b>Swipe:</b> On mobile, swipe from one cell to its neighbor to pair them.',
+    tutUnpair:'<b>Unpair:</b> Tap a paired cell to remove the pairing.',
+    tutRule:'<b>Rule:</b> Each domino (e.g. 2\u20225) appears exactly once. Duplicates are highlighted in red.',
+    tutTip:'<b>Tip:</b> Start with pairs that can only go in one place. Use the reference panel below to track used dominoes.',
+    btnGotIt:'Got it!',
+    dontShow:'Don\'t show again',
+    winTitle:'\ud83c\udf89 Solved!',
+    winTime:'Time: ',
+    winMoves:'Moves: ',
+    winHints:' \u00b7 Hints: ',
+    btnNewGame:'New Game',
+    confirmSolution:'Show the solution? This will end the game.',
+    shareText:'\ud83d\udd3a I solved Dominosa!',
+    shareMoves:' moves',
+    shareHints:' hints',
+    shareVerify:'Verify & Play: ',
+    diffEasy:'Easy',diffMedium:'Medium',diffHard:'Hard'
+  },
+  ru:{
+    title:'\u041a\u043e\u0437\u043b\u043e\u0431\u043e\u0439',
+    subtitle:'\u041d\u0430\u0439\u0434\u0438 \u0433\u0440\u0430\u043d\u0438\u0446\u044b \u0432\u0441\u0435\u0445 \u0434\u043e\u043c\u0438\u043d\u043e\u0448\u0435\u043a',
+    btnNew:'\u041d\u043e\u0432\u0430\u044f',
+    any:'\u041b\u044e\u0431\u0430\u044f',easy:'\u041b\u0451\u0433\u043a\u0430\u044f',medium:'\u0421\u0440\u0435\u0434\u043d\u044f\u044f',hard:'\u0422\u0440\u0443\u0434\u043d\u0430\u044f',
+    refTitle:'\u041d\u0430\u0431\u043e\u0440 \u0434\u043e\u043c\u0438\u043d\u043e',
+    seedPrompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0438\u0434:',
+    tutTitle:'\u041a\u0430\u043a \u0438\u0433\u0440\u0430\u0442\u044c',
+    tutGoal:'<b>\u0426\u0435\u043b\u044c:</b> \u041d\u0430\u0439\u0442\u0438 \u0433\u0440\u0430\u043d\u0438\u0446\u044b \u0432\u0441\u0435\u0445 \u0441\u043a\u0440\u044b\u0442\u044b\u0445 \u0434\u043e\u043c\u0438\u043d\u043e\u0448\u0435\u043a \u0432 \u0441\u0435\u0442\u043a\u0435 \u0447\u0438\u0441\u0435\u043b.',
+    tutTap:'<b>\u0422\u0430\u043f-\u0422\u0430\u043f:</b> \u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u044f\u0447\u0435\u0439\u043a\u0443, \u0437\u0430\u0442\u0435\u043c \u043d\u0430 \u0441\u043e\u0441\u0435\u0434\u043d\u044e\u044e \u0447\u0442\u043e\u0431\u044b \u0441\u043e\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u0438\u0445 \u0432 \u0434\u043e\u043c\u0438\u043d\u043e.',
+    tutSwipe:'<b>\u0421\u0432\u0430\u0439\u043f:</b> \u041d\u0430 \u043c\u043e\u0431\u0438\u043b\u044c\u043d\u043e\u043c \u043f\u0440\u043e\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u043b\u044c\u0446\u0435\u043c \u043e\u0442 \u043e\u0434\u043d\u043e\u0439 \u044f\u0447\u0435\u0439\u043a\u0438 \u043a \u0441\u043e\u0441\u0435\u0434\u043d\u0435\u0439.',
+    tutUnpair:'<b>\u0420\u0430\u0437\u0431\u0438\u0442\u044c:</b> \u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u0441\u043e\u0435\u0434\u0438\u043d\u0451\u043d\u043d\u0443\u044e \u044f\u0447\u0435\u0439\u043a\u0443 \u0447\u0442\u043e\u0431\u044b \u0443\u0431\u0440\u0430\u0442\u044c \u043f\u0430\u0440\u0443.',
+    tutRule:'<b>\u041f\u0440\u0430\u0432\u0438\u043b\u043e:</b> \u041a\u0430\u0436\u0434\u043e\u0435 \u0434\u043e\u043c\u0438\u043d\u043e (e.g. 2\u20225) \u0432\u0441\u0442\u0440\u0435\u0447\u0430\u0435\u0442\u0441\u044f \u0440\u043e\u0432\u043d\u043e \u043e\u0434\u0438\u043d \u0440\u0430\u0437. \u0414\u0443\u0431\u043b\u0438 \u043f\u043e\u0434\u0441\u0432\u0435\u0447\u0435\u043d\u044b \u043a\u0440\u0430\u0441\u043d\u044b\u043c.',
+    tutTip:'<b>\u0421\u043e\u0432\u0435\u0442:</b> \u041d\u0430\u0447\u0438\u043d\u0430\u0439\u0442\u0435 \u0441 \u043f\u0430\u0440, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u043c\u043e\u0433\u0443\u0442 \u0441\u0442\u043e\u044f\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u0432 \u043e\u0434\u043d\u043e\u043c \u043c\u0435\u0441\u0442\u0435. \u0421\u043b\u0435\u0434\u0438\u0442\u0435 \u0437\u0430 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u043d\u044b\u043c\u0438 \u0434\u043e\u043c\u0438\u043d\u043e \u0432 \u043f\u0430\u043d\u0435\u043b\u0438 \u043d\u0438\u0436\u0435.',
+    btnGotIt:'\u041f\u043e\u043d\u044f\u043b!',
+    dontShow:'\u0411\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c',
+    winTitle:'\ud83c\udf89 \u0420\u0435\u0448\u0435\u043d\u043e!',
+    winTime:'\u0412\u0440\u0435\u043c\u044f: ',
+    winMoves:'\u0425\u043e\u0434\u044b: ',
+    winHints:' \u00b7 \u041f\u043e\u0434\u0441\u043a\u0430\u0437\u043a\u0438: ',
+    btnNewGame:'\u041d\u043e\u0432\u0430\u044f \u0438\u0433\u0440\u0430',
+    confirmSolution:'\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435? \u0418\u0433\u0440\u0430 \u0431\u0443\u0434\u0435\u0442 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430.',
+    shareText:'\ud83d\udd3a \u042f \u0440\u0435\u0448\u0438\u043b \u041a\u043e\u0437\u043b\u043e\u0431\u043e\u0439!',
+    shareMoves:' \u0445\u043e\u0434\u043e\u0432',
+    shareHints:' \u043f\u043e\u0434\u0441\u043a\u0430\u0437\u043e\u043a',
+    shareVerify:'\u041f\u0440\u043e\u0432\u0435\u0440\u044c \u0438 \u0418\u0433\u0440\u0430\u0439: ',
+    diffEasy:'\u041b\u0451\u0433\u043a\u0430\u044f',diffMedium:'\u0421\u0440\u0435\u0434\u043d\u044f\u044f',diffHard:'\u0422\u0440\u0443\u0434\u043d\u0430\u044f'
+  }
+};
+let lang='en';
+function T(k){return L[lang][k]||L.en[k]||k}
+
+function setLang(v){
+  lang=v;
+  try{localStorage.setItem('dominosa-lang',v)}catch(e){}
+  document.getElementById('langSelect').value=v;
+  applyLang();
+}
+
+function loadLang(){
+  try{
+    const v=localStorage.getItem('dominosa-lang')||'en';
+    lang=v;
+    document.getElementById('langSelect').value=v;
+  }catch(e){}
+}
+
+function applyLang(){
+  document.title=T('title');
+  document.getElementById('gameTitle').textContent=T('title');
+  document.getElementById('subtitle').textContent=T('subtitle');
+  document.getElementById('btnNew').textContent=T('btnNew');
+  document.getElementById('optAny').textContent=T('any');
+  document.getElementById('optEasy').textContent=T('easy');
+  document.getElementById('optMedium').textContent=T('medium');
+  document.getElementById('optHard').textContent=T('hard');
+  document.getElementById('refTitle').textContent=T('refTitle');
+  document.getElementById('tutTitle').textContent=T('tutTitle');
+  document.getElementById('tutGoal').innerHTML=T('tutGoal');
+  document.getElementById('tutTap').innerHTML=T('tutTap');
+  document.getElementById('tutSwipe').innerHTML=T('tutSwipe');
+  document.getElementById('tutUnpair').innerHTML=T('tutUnpair');
+  document.getElementById('tutRule').innerHTML=T('tutRule');
+  document.getElementById('tutTip').innerHTML=T('tutTip');
+  document.getElementById('btnGotIt').textContent=T('btnGotIt');
+  document.getElementById('lblDontShow').textContent=T('dontShow');
+  document.getElementById('winTitle').innerHTML=T('winTitle');
+  document.getElementById('btnNewGame').textContent=T('btnNewGame');
+  renderDiffBadge();
+}
+
 // === SEEDED PRNG ===
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
@@ -239,8 +344,6 @@ function generatePuzzle(seed0){
   const conf=getConfig(parseInt(document.getElementById('sizeSelect').value));
   MAX_NUM=conf.maxNum;ROWS=conf.rows;COLS=conf.cols;TOTAL_DOMINOES=conf.total;
   const wantDiff=document.getElementById('diffSelect').value;
-  
-  // Generate batch, score each, pick best match
   const candidates=[];
   for(let i=0;i<20;i++){
     const p=generateOnePuzzle(seed0+i,conf);
@@ -250,19 +353,15 @@ function generatePuzzle(seed0){
     }
   }
   if(!candidates.length){
-    // Fallback: brute force one more
     for(let i=20;i<200;i++){
       const p=generateOnePuzzle(seed0+i,conf);
       if(p){p.difficulty=rateDifficulty(p.grid,conf.maxNum,conf.rows,conf.cols);candidates.push(p);break;}
     }
   }
-  
-  // Pick best match
   let pick=candidates[0];
   if(wantDiff!=='any'){
     const exact=candidates.filter(c=>c.difficulty.level===wantDiff);
     if(exact.length) pick=exact[0];
-    // If no exact match, pick closest
     else{
       const order={easy:1,medium:2,hard:3};
       const target=order[wantDiff];
@@ -270,7 +369,6 @@ function generatePuzzle(seed0){
       pick=candidates[0];
     }
   }
-  
   grid=pick.grid;
   solution=pick.solution;
   seed=pick.seed;
@@ -279,21 +377,14 @@ function generatePuzzle(seed0){
 }
 
 // === DIFFICULTY RATING ===
-// Logical solver with 3 technique levels:
-// L1 "Forced": domino (a,b) has only one possible position
-// L2 "Elimination": cell (r,c) can only pair with one neighbor
-// L3 "Hard": needs trial/bifurcation (solver couldn't finish with L1+L2)
 function rateDifficulty(g,maxNum,rows,cols){
   function domKey(a,b){return Math.min(a,b)*100+Math.max(a,b)}
-  
-  // State: which cells are covered, which dominoes are placed
   const covered=Array.from({length:rows},()=>Array(cols).fill(false));
   const placedDoms=new Set();
   let maxLevel=1;
   let totalPlaced=0;
   const totalNeeded=rows*cols/2;
   let l1steps=0,l2steps=0;
-  
   function getNeighbors(r,c){
     const n=[];
     if(r>0&&!covered[r-1][c])n.push([r-1,c]);
@@ -302,19 +393,14 @@ function rateDifficulty(g,maxNum,rows,cols){
     if(c<cols-1&&!covered[r][c+1])n.push([r,c+1]);
     return n;
   }
-  
   function place(r1,c1,r2,c2){
     covered[r1][c1]=covered[r2][c2]=true;
     placedDoms.add(domKey(g[r1][c1],g[r2][c2]));
     totalPlaced++;
   }
-  
   let changed=true;
   while(changed&&totalPlaced<totalNeeded){
     changed=false;
-    
-    // --- Level 1: Forced domino ---
-    // For each unplaced domino, count how many positions it can go
     for(let a=0;a<=maxNum&&totalPlaced<totalNeeded;a++){
       for(let b=a+1;b<=maxNum;b++){
         const key=domKey(a,b);
@@ -327,7 +413,6 @@ function rateDifficulty(g,maxNum,rows,cols){
           const nb=getNeighbors(r,c);
           for(const[nr,nc]of nb){
             if(g[nr][nc]===target){
-              // Avoid counting (r,c)+(nr,nc) and (nr,nc)+(r,c) as two
               const pk=r*1000000+c*10000+nr*100+nc;
               const pk2=nr*1000000+nc*10000+r*100+c;
               if(!positions.some(p=>p.pk===pk||p.pk===pk2)){
@@ -344,14 +429,10 @@ function rateDifficulty(g,maxNum,rows,cols){
       }
     }
     if(changed)continue;
-    
-    // --- Level 2: Cell elimination ---
-    // For each uncovered cell, find which dominoes can cover it
     for(let r=0;r<rows&&totalPlaced<totalNeeded;r++){
       for(let c=0;c<cols;c++){
         if(covered[r][c])continue;
         const nb=getNeighbors(r,c);
-        // Which neighbors can form a valid (unused) domino?
         const valid=[];
         for(const[nr,nc]of nb){
           const key=domKey(g[r][c],g[nr][nc]);
@@ -362,24 +443,22 @@ function rateDifficulty(g,maxNum,rows,cols){
           l2steps++;
           if(maxLevel<2)maxLevel=2;
           changed=true;
-          break; // restart scan
+          break;
         }
       }
       if(changed)break;
     }
   }
-  
   let level;
   if(totalPlaced>=totalNeeded){
     level=(maxLevel<=1)?'easy':'medium';
   } else {
     level='hard';
   }
-  
   return {level, maxLevel, l1steps, l2steps, solved:totalPlaced>=totalNeeded};
 }
 
-// === SOLVER (for solution count) ===
+// === SOLVER ===
 function countSolutions(g,maxNum,maxCount=3){
   const rows=g.length,cols=g[0].length;
   const used=Array.from({length:rows},()=>Array(cols).fill(false));
@@ -433,13 +512,13 @@ function newGame(customSeed){
 }
 
 function promptSeed(){
-  const s=prompt('Enter seed:',seed);
+  const s=prompt(T('seedPrompt'),seed);
   if(s&&!isNaN(parseInt(s)))newGame(parseInt(s));
 }
 
 function renderDiffBadge(){
   const el=document.getElementById('diffLabel');
-  const labels={easy:'Easy',medium:'Medium',hard:'Hard'};
+  const labels={easy:T('diffEasy'),medium:T('diffMedium'),hard:T('diffHard')};
   el.innerHTML='<span class="diff-badge '+currentDifficulty+'">'+(labels[currentDifficulty]||currentDifficulty)+'</span>';
 }
 
@@ -661,8 +740,8 @@ function calcStars(){
 function showWin(){
   const stars=calcStars();
   document.getElementById('winStars').textContent='\u2605'.repeat(stars)+'\u2606'.repeat(3-stars);
-  document.getElementById('winTime').textContent='Time: '+formatTime(seconds);
-  document.getElementById('winMoves').textContent='Moves: '+moves+(hints?' \u00b7 Hints: '+hints:'');
+  document.getElementById('winTime').textContent=T('winTime')+formatTime(seconds);
+  document.getElementById('winMoves').textContent=T('winMoves')+moves+(hints?T('winHints')+hints:'');
   document.getElementById('winOverlay').classList.add('show');
 }
 
@@ -678,7 +757,7 @@ function getShareData(){
   const diffIcons={easy:'\ud83d\udfe2',medium:'\ud83d\udfe1',hard:'\ud83d\udd34'};
   const hh=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
   const longUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+hh;
-  const text='\ud83d\udd3a I solved Dominosa! '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+' moves'+(hints?' \u00b7 '+hints+' hints':'');
+  const text=T('shareText')+' '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+T('shareMoves')+(hints?' \u00b7 '+hints+T('shareHints'):'');
   return {text,longUrl};
 }
 let _shortUrl=null;
@@ -691,7 +770,7 @@ function getShortUrl(cb){
 }
 function shareToX(){
   getShortUrl(function(url,d){
-    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(d.text+'\n\nVerify & Play: '+url),'_blank');
+    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(d.text+'\n\n'+T('shareVerify')+url),'_blank');
   });
 }
 function shareToFB(){
@@ -714,24 +793,24 @@ function shareResult(){
   function feedback(msg){if(copyBtn){const o=copyBtn.textContent;copyBtn.textContent=msg;setTimeout(()=>copyBtn.textContent=o,2000)}}
   feedback('\u23f3');
   getShortUrl(function(url,d){
-    const t=d.text+'\n\nVerify & Play: '+url;
+    const t=d.text+'\n\n'+T('shareVerify')+url;
     clipCopy(t,feedback);
   });
 }
 function clipCopy(t,fb){
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705 Copied!')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
 }
 function taCopy(t,fb){
   const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-9999px';
   document.body.appendChild(ta);ta.select();
-  try{document.execCommand('copy');fb('\u2705 Copied!')}catch(e){fb('\u274c Failed')}
+  try{document.execCommand('copy');fb('\u2705')}catch(e){fb('\u274c')}
   document.body.removeChild(ta);
 }
 
 // === SHOW SOLUTION ===
 function showSolution(){
   if(gameWon)return;
-  if(!confirm('Show the solution? This will end the game.'))return;
+  if(!confirm(T('confirmSolution')))return;
   for(const s of solution){
     const[r1,c1,r2,c2]=s;
     pairs[r1][c1]={r:r2,c:c2};
@@ -761,6 +840,8 @@ function parseParams(){
 // === INIT ===
 window.addEventListener('load',()=>{
   loadTheme();
+  loadLang();
+  applyLang();
   maybeShowTutorial();
   const params=parseParams();
   if(params){
@@ -828,7 +909,6 @@ document.getElementById('board').addEventListener('touchstart',function(e){
 
 document.getElementById('board').addEventListener('touchmove',function(e){
   touchMoved=true;
-  // Highlight target cell during drag
   const cell=getCellFromTouch(e);
   if(touchStartCell&&cell){
     const dr=Math.abs(touchStartCell.r-cell.r),dc=Math.abs(touchStartCell.c-cell.c);
@@ -844,11 +924,10 @@ document.getElementById('board').addEventListener('touchend',function(e){
   const endCell=getCellFromTouch(e);
   if(!endCell){touchStartCell=null;return;}
   const sr=touchStartCell.r,sc=touchStartCell.c,er=endCell.r,ec=endCell.c;
-  if(sr===er&&sc===ec){touchStartCell=null;return;} // no movement
+  if(sr===er&&sc===ec){touchStartCell=null;return;}
   const dr=Math.abs(sr-er),dc=Math.abs(sc-ec);
   if((dr===1&&dc===0)||(dr===0&&dc===1)){
     e.preventDefault();
-    // Pair via swipe
     selected={r:sr,c:sc};
     onCellClick(er,ec);
   }
