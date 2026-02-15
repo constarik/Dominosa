@@ -97,7 +97,7 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 </svg>
 <h1 id="gameTitle">Dominosa</h1>
 </div>
-<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.7</div>
+<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.8</div>
 <div class="subtitle" id="subtitle">Find all hidden dominoes</div>
 <div class="controls">
   <button class="primary" onclick="newGame()" id="btnNew">New</button>
@@ -165,6 +165,7 @@ h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--acce
     <button class="share-btn vk" onclick="shareToVK()" id="btnVK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x412;&#x41a;">&#x412;&#x41a;</button>
     <button class="share-btn ok" onclick="shareToOK()" id="btnOK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x41e;&#x41a;">&#x41e;&#x41a;</button>
     <button class="share-btn copy" onclick="shareResult()" title="Copy">&#x1f4cb;</button>
+    <button class="share-btn" style="background:#8b5cf6" onclick="shareImage()" title="Share image">&#x1f4f7;</button>
   </div>
 </div></div>
 
@@ -751,6 +752,64 @@ function makeHash(s,sz,t,m,h){
   v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
   return(v>>>0).toString(36);
 }
+function generateResultImage(url){
+  return new Promise(function(resolve){
+    const W=600,H=400;
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const x=cv.getContext('2d');
+    // BG
+    x.fillStyle='#080c18';x.fillRect(0,0,W,H);
+    // Glow
+    const g=x.createRadialGradient(300,160,30,300,160,250);
+    g.addColorStop(0,'#3b82f620');g.addColorStop(1,'transparent');
+    x.fillStyle=g;x.fillRect(0,0,W,H);
+    // Logo triangle
+    const cx=300,cy=80,s=40,h=s*Math.sqrt(3)/2;
+    const tx=cx,ty=cy-h*0.6,lx=cx-s/2,ly=cy+h*0.4,rx=cx+s/2,ry=cy+h*0.4;
+    x.beginPath();x.moveTo(tx,ty);x.lineTo(lx,ly);x.lineTo(rx,ry);x.closePath();
+    x.fillStyle='#3b82f615';x.fill();x.strokeStyle='#3b82f6';x.lineWidth=1.5;x.stroke();
+    function drawSq(x1,y1,x2,y2,dots){
+      const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+      const nx=-dy/len*len/2,ny=dx/len*len/2;
+      const p3x=x2+nx,p3y=y2+ny,p4x=x1+nx,p4y=y1+ny;
+      x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.lineTo(p3x,p3y);x.lineTo(p4x,p4y);x.closePath();
+      x.fillStyle='#1e293b';x.fill();x.strokeStyle='#3b82f6';x.lineWidth=1.5;x.stroke();
+      const sc=(x1+x2+p3x+p4x)/4,sy2=(y1+y2+p3y+p4y)/4;
+      x.fillStyle='#f1f5f9';
+      if(dots===1){x.beginPath();x.arc(sc,sy2,3,0,Math.PI*2);x.fill()}
+      if(dots===2){x.beginPath();x.arc(sc-4,sy2-4,3,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc+4,sy2+4,3,0,Math.PI*2);x.fill()}
+      if(dots===3){x.beginPath();x.arc(sc-5,sy2-5,2.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc,sy2,2.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc+5,sy2+5,2.5,0,Math.PI*2);x.fill()}
+    }
+    drawSq(lx,ly,rx,ry,3);drawSq(tx,ty,lx,ly,1);drawSq(rx,ry,tx,ty,2);
+    // Title
+    x.fillStyle='#f1f5f9';x.font='bold 36px sans-serif';x.textAlign='center';
+    x.fillText(T('title'),300,150);
+    // Stars
+    const st=calcStars();
+    const starStr='\u2605'.repeat(st)+'\u2606'.repeat(3-st);
+    x.font='40px sans-serif';x.fillStyle='#fbbf24';
+    x.fillText(starStr,300,200);
+    // Size + Difficulty
+    const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
+    const diffLabels={easy:T('diffEasy'),medium:T('diffMedium'),hard:T('diffHard')};
+    x.font='20px sans-serif';x.fillStyle='#64748b';
+    x.fillText((sizeNames[TOTAL_DOMINOES]||'')+' \u00b7 '+(diffLabels[currentDifficulty]||''),300,235);
+    // Time + Moves
+    x.font='bold 28px sans-serif';x.fillStyle='#e2e8f0';
+    x.fillText(formatTime(seconds)+' \u00b7 '+moves+T('shareMoves')+(hints?' \u00b7 '+hints+T('shareHints'):''),300,275);
+    // URL
+    x.font='16px sans-serif';x.fillStyle='#3b82f6';
+    x.fillText(T('shareVerify'),300,320);
+    x.font='14px sans-serif';x.fillStyle='#60a5fa';
+    // Truncate URL if too long
+    const displayUrl=url.length>60?url.substring(0,57)+'...':url;
+    x.fillText(displayUrl,300,342);
+    // Footer
+    x.font='12px sans-serif';x.fillStyle='#334155';
+    x.fillText('constarik.github.io/Dominosa',300,380);
+    cv.toBlob(function(blob){resolve(blob)},'image/png');
+  });
+}
 function getShareData(){
   const stars='\u2605'.repeat(calcStars())+'\u2606'.repeat(3-calcStars());
   const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
@@ -798,6 +857,29 @@ function shareResult(){
     const t=d.text+'\n\n'+T('shareVerify')+url;
     clipCopy(t,feedback);
   });
+}
+function shareImage(){
+  const imgBtn=document.querySelector('.share-btn[style]');
+  function feedback(msg){if(imgBtn){const o=imgBtn.textContent;imgBtn.textContent=msg;setTimeout(()=>imgBtn.textContent=o,2000)}}
+  feedback('\u23f3');
+  getShortUrl(function(url,d){
+    generateResultImage(url).then(function(blob){
+      const file=new File([blob],T('title')+'-result.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({text:d.text+'\n\n'+T('shareVerify')+url,files:[file]}).then(()=>feedback('\u2705')).catch(()=>downloadImage(blob,feedback));
+      } else {
+        downloadImage(blob,feedback);
+      }
+    });
+  });
+}
+function downloadImage(blob,fb){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=T('title')+'-result.png';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  fb('\u2b07\ufe0f');
 }
 function clipCopy(t,fb){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
