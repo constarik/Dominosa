@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Dominosa</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--card:#1e293b;--accent:#3b82f6;--accent2:#60a5fa;--text:#f1f5f9;--dim:#64748b;--cell:#1e293b;--cell-border:#334155;--paired-bg:#1e3a5f;--paired-border:#3b82f6;--selected:#fbbf24;--correct:#22c55e;--error:#ef4444;--ref-bg:#0f172a;--ref-used:#22c55e30;--ref-avail:#1e293b}
+[data-theme="ocean"]{--bg:#0a1628;--card:#112240;--accent:#00b4d8;--accent2:#48cae4;--text:#caf0f8;--dim:#577590;--cell:#112240;--cell-border:#1d3461;--paired-bg:#023e8a;--paired-border:#00b4d8;--selected:#f9c74f;--correct:#06d6a0;--error:#ef476f;--ref-used:#06d6a030;--ref-avail:#112240}
+[data-theme="forest"]{--bg:#1a1c16;--card:#2d321e;--accent:#a7c957;--accent2:#c5dea0;--text:#e8ecd8;--dim:#6b705c;--cell:#2d321e;--cell-border:#414833;--paired-bg:#3a5a1c;--paired-border:#a7c957;--selected:#ffd166;--correct:#80b918;--error:#e63946;--ref-used:#80b91830;--ref-avail:#2d321e}
+[data-theme="sunset"]{--bg:#1c1017;--card:#2e1a25;--accent:#e76f51;--accent2:#f4a261;--text:#fce4d6;--dim:#8a6552;--cell:#2e1a25;--cell-border:#4a2c3a;--paired-bg:#5e2a3d;--paired-border:#e76f51;--selected:#f4a261;--correct:#2a9d8f;--error:#e63946;--ref-used:#2a9d8f30;--ref-avail:#2e1a25}
+[data-theme="light"]{--bg:#f0f0f0;--card:#ffffff;--accent:#3b82f6;--accent2:#2563eb;--text:#1e293b;--dim:#94a3b8;--cell:#ffffff;--cell-border:#cbd5e1;--paired-bg:#dbeafe;--paired-border:#3b82f6;--selected:#f59e0b;--correct:#16a34a;--error:#dc2626;--ref-used:#16a34a20;--ref-avail:#ffffff}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:12px 0 4px}
+.subtitle{color:var(--dim);font-size:0.85rem;margin-bottom:10px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.controls select,.controls button{background:var(--card);color:var(--text);border:1px solid var(--cell-border);border-radius:8px;padding:6px 14px;font-size:0.85rem;cursor:pointer;transition:all .2s}
+.controls button:hover,.controls select:hover{border-color:var(--accent);background:#263348}
+.controls button.primary{background:var(--accent);border-color:var(--accent);font-weight:600}
+.controls button.primary:hover{background:#2563eb}
+.settings-row{margin-top:0!important}
+.settings-row select{padding:4px 8px;font-size:0.75rem}
+.stats{display:flex;gap:20px;justify-content:center;color:var(--dim);font-size:0.9rem;margin:6px 0;flex-wrap:wrap}
+.stats span{display:flex;align-items:center;gap:4px}
+.stats .val{color:var(--text);font-weight:600}
+.diff-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;margin-left:4px}
+.diff-badge.easy{background:#22c55e30;color:#22c55e}
+.diff-badge.medium{background:#f59e0b30;color:#f59e0b}
+.diff-badge.hard{background:#ef444430;color:#ef4444}
+#board{display:inline-grid;gap:0;margin:10px auto;padding:4px;user-select:none;touch-action:manipulation}
+.cell{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;cursor:pointer;border:2px solid var(--cell-border);background:var(--cell);transition:background .15s,border-color .15s;position:relative;z-index:1}
+.cell:hover{background:#263348}
+.cell.selected{background:#92400e40;border-color:var(--selected);z-index:2}
+.cell.paired{background:var(--paired-bg);border-color:var(--paired-border)}
+.cell.paired.no-border-right{border-right-color:var(--paired-bg)}
+.cell.paired.no-border-left{border-left-color:var(--paired-bg)}
+.cell.paired.no-border-top{border-top-color:var(--paired-bg)}
+.cell.paired.no-border-bottom{border-bottom-color:var(--paired-bg)}
+.cell.hint-highlight{animation:hintPulse 1s ease-in-out 3}
+@keyframes hintPulse{0%,100%{box-shadow:none}50%{box-shadow:inset 0 0 12px var(--selected)}}
+.cell.error{border-color:var(--error)!important;background:#7f1d1d40!important}
+#reference{margin:10px auto;max-width:420px}
+.ref-title{text-align:center;color:var(--dim);font-size:0.8rem;margin-bottom:6px}
+.ref-grid{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.ref-domino{display:flex;align-items:center;gap:2px;padding:3px 7px;border-radius:6px;background:var(--ref-avail);border:1px solid var(--cell-border);font-size:0.75rem;font-weight:600;transition:all .2s;cursor:default}
+.ref-domino.used{background:var(--ref-used);border-color:var(--correct);color:var(--correct)}
+.ref-domino.duplicate{border-color:var(--error);color:var(--error);background:#7f1d1d30}
+.ref-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);margin:0 1px}
+#winOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:100;justify-content:center;align-items:center}
+#winOverlay.show{display:flex}
+#winBox{background:var(--card);border-radius:16px;padding:30px;text-align:center;max-width:340px;border:1px solid var(--cell-border);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#winBox h2{font-size:1.5rem;margin-bottom:8px;color:var(--correct)}
+#winBox .stars{font-size:2rem;margin:8px 0}
+#winBox .info{color:var(--dim);font-size:0.9rem;margin:4px 0}
+#winBox .btn-row{display:flex;gap:8px;margin-top:16px;justify-content:center;flex-wrap:wrap}
+#winBox button{padding:8px 20px;border-radius:8px;border:1px solid var(--cell-border);background:var(--card);color:var(--text);cursor:pointer;font-size:0.9rem}
+#winBox button.primary{background:var(--accent);border-color:var(--accent)}
+.share-row{display:flex;gap:6px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.share-btn{width:40px;height:40px;border-radius:8px;border:none;cursor:pointer;font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:opacity .2s;color:#fff}
+.share-btn:hover{opacity:.8}
+.share-btn.x{background:#000}
+.share-btn.fb{background:#1877f2}
+.share-btn.vk{background:#4c75a3}
+.share-btn.ok{background:#ee8208}
+.share-btn.copy{background:var(--card);color:var(--text);border:1px solid var(--cell-border)}
+.seed-display{color:var(--dim);font-size:0.75rem;text-align:center;margin:2px 0;cursor:pointer}
+.seed-display:hover{color:var(--accent2)}
+.tutorial-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:200;justify-content:center;align-items:center}
+.tutorial-overlay.show{display:flex}
+.tutorial-box{background:var(--card);border-radius:16px;padding:24px;max-width:380px;margin:16px;border:1px solid var(--cell-border);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.tutorial-box h2{font-size:1.3rem;margin-bottom:12px;color:var(--accent2)}
+.tut-step{color:var(--text);font-size:0.85rem;margin:8px 0;line-height:1.4}
+.tut-step b{color:var(--accent2)}
+.tutorial-box .btn-row{display:flex;gap:12px;align-items:center;margin-top:16px}
+.tutorial-box label{color:var(--dim);font-size:0.8rem;display:flex;align-items:center;gap:4px;cursor:pointer}
+@media(max-width:500px){
+  .cell{width:40px;height:40px;font-size:1.1rem}
+  h1{font-size:1.4rem}
+}
+@media(max-width:380px){
+  .cell{width:34px;height:34px;font-size:1rem;border-width:1.5px}
+}
+</style>
+</head>
+<body>
+<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0 0">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="36" height="29">
+<defs><linearGradient id="la" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>
+<polygon points="100,65 80,99.5 120,99.5" fill="url(#la)" opacity=".15" stroke="#3b82f6" stroke-width="1.5"/>
+<polygon points="80,99.5 120,99.5 120,139.5 80,139.5" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+<circle cx="90" cy="109.5" r="3.5" fill="#f1f5f9"/><circle cx="100" cy="119.5" r="3.5" fill="#f1f5f9"/><circle cx="110" cy="129.5" r="3.5" fill="#f1f5f9"/>
+<polygon points="100,65 80,99.5 45.4,79.5 65.4,45" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+<circle cx="72.7" cy="72.2" r="3.5" fill="#f1f5f9"/>
+<polygon points="100,65 120,99.5 154.6,79.5 134.6,45" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+<circle cx="120.4" cy="76.2" r="3.5" fill="#f1f5f9"/><circle cx="134.2" cy="68.2" r="3.5" fill="#f1f5f9"/>
+</svg>
+<h1 id="gameTitle">Dominosa</h1>
+</div>
+<div style="color:var(--dim);font-size:.7rem;text-align:center">v1.8</div>
+<div class="subtitle" id="subtitle">Find all hidden dominoes</div>
+<div class="controls">
+  <button class="primary" onclick="newGame()" id="btnNew">New</button>
+  <button onclick="dailyPuzzle()" title="Daily">&#x1f4c5;</button>
+  <button onclick="giveHint()" title="Hint">&#x1f4a1;</button>
+  <button onclick="undoLast()" title="Undo">&#x21a9;</button>
+  <button onclick="showSolution()" id="btnSolution" title="Solution">&#x1f441;</button>
+  <button onclick="showTutorial()">?</button>
+</div>
+<div class="controls settings-row">
+  <select id="sizeSelect">
+    <option value="4">4&#xd7;5</option>
+    <option value="5" selected>5&#xd7;6</option>
+    <option value="6">6&#xd7;7</option>
+  </select>
+  <select id="diffSelect">
+    <option value="any" id="optAny">Any</option>
+    <option value="easy" id="optEasy">Easy</option>
+    <option value="medium" id="optMedium">Medium</option>
+    <option value="hard" id="optHard">Hard</option>
+  </select>
+  <select id="themeSelect" onchange="setTheme(this.value)">
+    <option value="">Dark</option>
+    <option value="ocean">Ocean</option>
+    <option value="forest">Forest</option>
+    <option value="sunset">Sunset</option>
+    <option value="light">Light</option>
+  </select>
+  <select id="langSelect" onchange="setLang(this.value)">
+    <option value="en">EN</option>
+    <option value="ru">RU</option>
+  </select>
+</div>
+<div class="stats">
+  <span>&#x23f1; <span class="val" id="timer">0:00</span></span>
+  <span>&#x1f522; <span class="val" id="moveCount">0</span></span>
+  <span>&#x1f4a1; <span class="val" id="hintCount">0</span></span>
+  <span>&#x1f3af; <span class="val" id="progress">0/15</span></span>
+  <span id="diffLabel"></span>
+</div>
+<div id="board"></div>
+<div id="reference"><div class="ref-title" id="refTitle">Domino Set</div><div class="ref-grid" id="refGrid"></div></div>
+<div class="seed-display" id="seedDisplay" onclick="promptSeed()" title="Click to enter seed"></div>
+<div id="tutorialOverlay" class="tutorial-overlay"><div id="tutorialBox" class="tutorial-box">
+  <h2 id="tutTitle">How to Play</h2>
+  <div class="tut-step" id="tutGoal"><b>Goal:</b> Find all hidden domino boundaries in the number grid.</div>
+  <div class="tut-step" id="tutTap"><b>Tap-Tap:</b> Tap a cell to select it, then tap an adjacent cell to pair them as a domino.</div>
+  <div class="tut-step" id="tutSwipe"><b>Swipe:</b> On mobile, swipe from one cell to its neighbor to pair them.</div>
+  <div class="tut-step" id="tutUnpair"><b>Unpair:</b> Tap a paired cell to remove the pairing.</div>
+  <div class="tut-step" id="tutRule"><b>Rule:</b> Each domino (e.g. 2&#x2022;5) appears exactly once. Duplicates are highlighted in red.</div>
+  <div class="tut-step" id="tutTip"><b>Tip:</b> Start with pairs that can only go in one place. Use the reference panel below to track used dominoes.</div>
+  <div class="btn-row"><button class="primary" onclick="closeTutorial()" id="btnGotIt">Got it!</button><label><input type="checkbox" id="tutDontShow"> <span id="lblDontShow">Don't show again</span></label></div>
+</div></div>
+<div id="winOverlay"><div id="winBox">
+  <h2 id="winTitle">&#x1f389; Solved!</h2>
+  <div class="stars" id="winStars"></div>
+  <div class="info" id="winTime"></div>
+  <div class="info" id="winMoves"></div>
+  <div class="btn-row">
+    <button class="primary" onclick="newGame()" id="btnNewGame">New Game</button>
+  </div>
+  <div class="share-row">
+    <button class="share-btn x" onclick="shareToX()" title="Share on X">&#x1d54f;</button>
+    <button class="share-btn fb" onclick="shareToFB()" title="Share on Facebook">f</button>
+    <button class="share-btn vk" onclick="shareToVK()" id="btnVK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x412;&#x41a;">&#x412;&#x41a;</button>
+    <button class="share-btn ok" onclick="shareToOK()" id="btnOK" title="&#x41f;&#x43e;&#x434;&#x435;&#x43b;&#x438;&#x442;&#x44c;&#x441;&#x44f; &#x432; &#x41e;&#x41a;">&#x41e;&#x41a;</button>
+    <button class="share-btn copy" onclick="shareResult()" title="Copy">&#x1f4cb;</button>
+    <button class="share-btn" style="background:#8b5cf6" onclick="shareImage()" title="Share image">&#x1f4f7;</button>
+  </div>
+</div></div>
+
+<script>
+// === I18N ===
+const L={
+  en:{
+    title:'Dominosa',
+    subtitle:'Find all hidden dominoes',
+    btnNew:'New',
+    any:'Any',easy:'Easy',medium:'Medium',hard:'Hard',
+    refTitle:'Domino Set',
+    seedPrompt:'Enter seed:',
+    tutTitle:'How to Play',
+    tutGoal:'<b>Goal:</b> Find all hidden domino boundaries in the number grid.',
+    tutTap:'<b>Tap-Tap:</b> Tap a cell to select it, then tap an adjacent cell to pair them as a domino.',
+    tutSwipe:'<b>Swipe:</b> On mobile, swipe from one cell to its neighbor to pair them.',
+    tutUnpair:'<b>Unpair:</b> Tap a paired cell to remove the pairing.',
+    tutRule:'<b>Rule:</b> Each domino (e.g. 2\u20225) appears exactly once. Duplicates are highlighted in red.',
+    tutTip:'<b>Tip:</b> Start with pairs that can only go in one place. Use the reference panel below to track used dominoes.',
+    btnGotIt:'Got it!',
+    dontShow:'Don\'t show again',
+    winTitle:'\ud83c\udf89 Solved!',
+    winTime:'Time: ',
+    winMoves:'Moves: ',
+    winHints:' \u00b7 Hints: ',
+    btnNewGame:'New Game',
+    confirmSolution:'Show the solution? This will end the game.',
+    shareText:'\ud83d\udd3a I solved Dominosa!',
+    shareMoves:' moves',
+    shareHints:' hints',
+    shareVerify:'Verify & Play: ',
+    diffEasy:'Easy',diffMedium:'Medium',diffHard:'Hard'
+  },
+  ru:{
+    title:'\u041a\u043e\u0437\u043b\u043e\u0431\u043e\u0439',
+    subtitle:'\u041d\u0430\u0439\u0434\u0438 \u0433\u0440\u0430\u043d\u0438\u0446\u044b \u0432\u0441\u0435\u0445 \u0434\u043e\u043c\u0438\u043d\u043e\u0448\u0435\u043a',
+    btnNew:'\u041d\u043e\u0432\u0430\u044f',
+    any:'\u041b\u044e\u0431\u0430\u044f',easy:'\u041b\u0451\u0433\u043a\u0430\u044f',medium:'\u0421\u0440\u0435\u0434\u043d\u044f\u044f',hard:'\u0422\u0440\u0443\u0434\u043d\u0430\u044f',
+    refTitle:'\u041d\u0430\u0431\u043e\u0440 \u0434\u043e\u043c\u0438\u043d\u043e',
+    seedPrompt:'\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u0438\u0434:',
+    tutTitle:'\u041a\u0430\u043a \u0438\u0433\u0440\u0430\u0442\u044c',
+    tutGoal:'<b>\u0426\u0435\u043b\u044c:</b> \u041d\u0430\u0439\u0442\u0438 \u0433\u0440\u0430\u043d\u0438\u0446\u044b \u0432\u0441\u0435\u0445 \u0441\u043a\u0440\u044b\u0442\u044b\u0445 \u0434\u043e\u043c\u0438\u043d\u043e\u0448\u0435\u043a \u0432 \u0441\u0435\u0442\u043a\u0435 \u0447\u0438\u0441\u0435\u043b.',
+    tutTap:'<b>\u0422\u0430\u043f-\u0422\u0430\u043f:</b> \u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u044f\u0447\u0435\u0439\u043a\u0443, \u0437\u0430\u0442\u0435\u043c \u043d\u0430 \u0441\u043e\u0441\u0435\u0434\u043d\u044e\u044e \u0447\u0442\u043e\u0431\u044b \u0441\u043e\u0435\u0434\u0438\u043d\u0438\u0442\u044c \u0438\u0445 \u0432 \u0434\u043e\u043c\u0438\u043d\u043e.',
+    tutSwipe:'<b>\u0421\u0432\u0430\u0439\u043f:</b> \u041d\u0430 \u043c\u043e\u0431\u0438\u043b\u044c\u043d\u043e\u043c \u043f\u0440\u043e\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u043b\u044c\u0446\u0435\u043c \u043e\u0442 \u043e\u0434\u043d\u043e\u0439 \u044f\u0447\u0435\u0439\u043a\u0438 \u043a \u0441\u043e\u0441\u0435\u0434\u043d\u0435\u0439.',
+    tutUnpair:'<b>\u0420\u0430\u0437\u0431\u0438\u0442\u044c:</b> \u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u0441\u043e\u0435\u0434\u0438\u043d\u0451\u043d\u043d\u0443\u044e \u044f\u0447\u0435\u0439\u043a\u0443 \u0447\u0442\u043e\u0431\u044b \u0443\u0431\u0440\u0430\u0442\u044c \u043f\u0430\u0440\u0443.',
+    tutRule:'<b>\u041f\u0440\u0430\u0432\u0438\u043b\u043e:</b> \u041a\u0430\u0436\u0434\u043e\u0435 \u0434\u043e\u043c\u0438\u043d\u043e (e.g. 2\u20225) \u0432\u0441\u0442\u0440\u0435\u0447\u0430\u0435\u0442\u0441\u044f \u0440\u043e\u0432\u043d\u043e \u043e\u0434\u0438\u043d \u0440\u0430\u0437. \u0414\u0443\u0431\u043b\u0438 \u043f\u043e\u0434\u0441\u0432\u0435\u0447\u0435\u043d\u044b \u043a\u0440\u0430\u0441\u043d\u044b\u043c.',
+    tutTip:'<b>\u0421\u043e\u0432\u0435\u0442:</b> \u041d\u0430\u0447\u0438\u043d\u0430\u0439\u0442\u0435 \u0441 \u043f\u0430\u0440, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u043c\u043e\u0433\u0443\u0442 \u0441\u0442\u043e\u044f\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u0432 \u043e\u0434\u043d\u043e\u043c \u043c\u0435\u0441\u0442\u0435. \u0421\u043b\u0435\u0434\u0438\u0442\u0435 \u0437\u0430 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u043d\u044b\u043c\u0438 \u0434\u043e\u043c\u0438\u043d\u043e \u0432 \u043f\u0430\u043d\u0435\u043b\u0438 \u043d\u0438\u0436\u0435.',
+    btnGotIt:'\u041f\u043e\u043d\u044f\u043b!',
+    dontShow:'\u0411\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c',
+    winTitle:'\ud83c\udf89 \u0420\u0435\u0448\u0435\u043d\u043e!',
+    winTime:'\u0412\u0440\u0435\u043c\u044f: ',
+    winMoves:'\u0425\u043e\u0434\u044b: ',
+    winHints:' \u00b7 \u041f\u043e\u0434\u0441\u043a\u0430\u0437\u043a\u0438: ',
+    btnNewGame:'\u041d\u043e\u0432\u0430\u044f \u0438\u0433\u0440\u0430',
+    confirmSolution:'\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435? \u0418\u0433\u0440\u0430 \u0431\u0443\u0434\u0435\u0442 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430.',
+    shareText:'\ud83d\udd3a \u042f \u0440\u0435\u0448\u0438\u043b \u041a\u043e\u0437\u043b\u043e\u0431\u043e\u0439!',
+    shareMoves:' \u0445\u043e\u0434\u043e\u0432',
+    shareHints:' \u043f\u043e\u0434\u0441\u043a\u0430\u0437\u043e\u043a',
+    shareVerify:'\u041f\u0440\u043e\u0432\u0435\u0440\u044c \u0438 \u0418\u0433\u0440\u0430\u0439: ',
+    diffEasy:'\u041b\u0451\u0433\u043a\u0430\u044f',diffMedium:'\u0421\u0440\u0435\u0434\u043d\u044f\u044f',diffHard:'\u0422\u0440\u0443\u0434\u043d\u0430\u044f'
+  }
+};
+let lang='en';
+function T(k){return L[lang][k]||L.en[k]||k}
+
+function setLang(v){
+  lang=v;
+  try{localStorage.setItem('dominosa-lang',v)}catch(e){}
+  document.getElementById('langSelect').value=v;
+  applyLang();
+}
+
+function loadLang(){
+  try{
+    const v=localStorage.getItem('dominosa-lang')||'en';
+    lang=v;
+    document.getElementById('langSelect').value=v;
+  }catch(e){}
+}
+
+function applyLang(){
+  document.title=T('title');
+  document.getElementById('gameTitle').textContent=T('title');
+  document.getElementById('subtitle').textContent=T('subtitle');
+  document.getElementById('btnNew').textContent=T('btnNew');
+  document.getElementById('optAny').textContent=T('any');
+  document.getElementById('optEasy').textContent=T('easy');
+  document.getElementById('optMedium').textContent=T('medium');
+  document.getElementById('optHard').textContent=T('hard');
+  document.getElementById('refTitle').textContent=T('refTitle');
+  document.getElementById('tutTitle').textContent=T('tutTitle');
+  document.getElementById('tutGoal').innerHTML=T('tutGoal');
+  document.getElementById('tutTap').innerHTML=T('tutTap');
+  document.getElementById('tutSwipe').innerHTML=T('tutSwipe');
+  document.getElementById('tutUnpair').innerHTML=T('tutUnpair');
+  document.getElementById('tutRule').innerHTML=T('tutRule');
+  document.getElementById('tutTip').innerHTML=T('tutTip');
+  document.getElementById('btnGotIt').textContent=T('btnGotIt');
+  document.getElementById('lblDontShow').textContent=T('dontShow');
+  document.getElementById('winTitle').innerHTML=T('winTitle');
+  document.getElementById('btnNewGame').textContent=T('btnNewGame');
+  renderDiffBadge();
+}
+
+// === SEEDED PRNG ===
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// === GLOBALS ===
+let ROWS,COLS,MAX_NUM,TOTAL_DOMINOES;
+let grid=[];
+let solution=[];
+let pairs=[];
+let selected=null;
+let rng;
+let seed;
+let currentDifficulty='';
+let seconds=0,timerInterval=null,moves=0,hints=0,gameWon=false;
+let history=[];
+
+// === SIZE CONFIG ===
+function getConfig(val){
+  const n=val;
+  return {maxNum:n, rows:n, cols:n+1, total:n*(n+1)/2};
+}
+
+// === GENERATION ===
+function shuffle(arr,rng){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*((i)+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+function generateTiling(rows,cols,rng){
+  const used=Array.from({length:rows},()=>Array(cols).fill(false));
+  const result=[];
+  function bt(pos){
+    while(pos<rows*cols&&used[Math.floor(pos/cols)][pos%cols])pos++;
+    if(pos>=rows*cols)return true;
+    const r=Math.floor(pos/cols),c=pos%cols;
+    const neighbors=[];
+    if(c+1<cols&&!used[r][c+1])neighbors.push([r,c+1]);
+    if(r+1<rows&&!used[r+1][c])neighbors.push([r+1,c]);
+    if(c-1>=0&&!used[r][c-1])neighbors.push([r,c-1]);
+    if(r-1>=0&&!used[r-1][c])neighbors.push([r-1,c]);
+    shuffle(neighbors,rng);
+    for(const[nr,nc]of neighbors){
+      used[r][c]=used[nr][nc]=true;
+      result.push([r,c,nr,nc]);
+      if(bt(pos+1))return true;
+      result.pop();
+      used[r][c]=used[nr][nc]=false;
+    }
+    return false;
+  }
+  bt(0);
+  return result;
+}
+
+function generateOnePuzzle(seed0,conf){
+  const dominoes=[];
+  for(let a=0;a<=conf.maxNum;a++)for(let b=a+1;b<=conf.maxNum;b++)dominoes.push([a,b]);
+  rng=mulberry32(seed0);
+  const tiling=generateTiling(conf.rows,conf.cols,rng);
+  if(tiling.length!==conf.total)return null;
+  const domCopy=[...dominoes];
+  shuffle(domCopy,rng);
+  const g=Array.from({length:conf.rows},()=>Array(conf.cols).fill(-1));
+  for(let i=0;i<conf.total;i++){
+    let[a,b]=domCopy[i];
+    if(rng()<0.5)[a,b]=[b,a];
+    const[r1,c1,r2,c2]=tiling[i];
+    g[r1][c1]=a;g[r2][c2]=b;
+  }
+  const sols=countSolutions(g,conf.maxNum);
+  if(sols>2)return null;
+  return {grid:g, solution:tiling.map((t,i)=>[...t,domCopy[i]]), seed:seed0};
+}
+
+function generatePuzzle(seed0){
+  const conf=getConfig(parseInt(document.getElementById('sizeSelect').value));
+  MAX_NUM=conf.maxNum;ROWS=conf.rows;COLS=conf.cols;TOTAL_DOMINOES=conf.total;
+  const wantDiff=document.getElementById('diffSelect').value;
+  const candidates=[];
+  for(let i=0;i<20;i++){
+    const p=generateOnePuzzle(seed0+i,conf);
+    if(p){
+      p.difficulty=rateDifficulty(p.grid,conf.maxNum,conf.rows,conf.cols);
+      candidates.push(p);
+    }
+  }
+  if(!candidates.length){
+    for(let i=20;i<200;i++){
+      const p=generateOnePuzzle(seed0+i,conf);
+      if(p){p.difficulty=rateDifficulty(p.grid,conf.maxNum,conf.rows,conf.cols);candidates.push(p);break;}
+    }
+  }
+  let pick=candidates[0];
+  if(wantDiff!=='any'){
+    const exact=candidates.filter(c=>c.difficulty.level===wantDiff);
+    if(exact.length) pick=exact[0];
+    else{
+      const order={easy:1,medium:2,hard:3};
+      const target=order[wantDiff];
+      candidates.sort((a,b)=>Math.abs(order[a.difficulty.level]-target)-Math.abs(order[b.difficulty.level]-target));
+      pick=candidates[0];
+    }
+  }
+  grid=pick.grid;
+  solution=pick.solution;
+  seed=pick.seed;
+  currentDifficulty=pick.difficulty.level;
+  return true;
+}
+
+// === DIFFICULTY RATING ===
+function rateDifficulty(g,maxNum,rows,cols){
+  function domKey(a,b){return Math.min(a,b)*100+Math.max(a,b)}
+  const covered=Array.from({length:rows},()=>Array(cols).fill(false));
+  const placedDoms=new Set();
+  let maxLevel=1;
+  let totalPlaced=0;
+  const totalNeeded=rows*cols/2;
+  let l1steps=0,l2steps=0;
+  function getNeighbors(r,c){
+    const n=[];
+    if(r>0&&!covered[r-1][c])n.push([r-1,c]);
+    if(r<rows-1&&!covered[r+1][c])n.push([r+1,c]);
+    if(c>0&&!covered[r][c-1])n.push([r,c-1]);
+    if(c<cols-1&&!covered[r][c+1])n.push([r,c+1]);
+    return n;
+  }
+  function place(r1,c1,r2,c2){
+    covered[r1][c1]=covered[r2][c2]=true;
+    placedDoms.add(domKey(g[r1][c1],g[r2][c2]));
+    totalPlaced++;
+  }
+  let changed=true;
+  while(changed&&totalPlaced<totalNeeded){
+    changed=false;
+    for(let a=0;a<=maxNum&&totalPlaced<totalNeeded;a++){
+      for(let b=a+1;b<=maxNum;b++){
+        const key=domKey(a,b);
+        if(placedDoms.has(key))continue;
+        const positions=[];
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+          if(covered[r][c])continue;
+          if(g[r][c]!==a&&g[r][c]!==b)continue;
+          const target=(g[r][c]===a)?b:a;
+          const nb=getNeighbors(r,c);
+          for(const[nr,nc]of nb){
+            if(g[nr][nc]===target){
+              const pk=r*1000000+c*10000+nr*100+nc;
+              const pk2=nr*1000000+nc*10000+r*100+c;
+              if(!positions.some(p=>p.pk===pk||p.pk===pk2)){
+                positions.push({r1:r,c1:c,r2:nr,c2:nc,pk});
+              }
+            }
+          }
+        }
+        if(positions.length===1){
+          place(positions[0].r1,positions[0].c1,positions[0].r2,positions[0].c2);
+          l1steps++;
+          changed=true;
+        }
+      }
+    }
+    if(changed)continue;
+    for(let r=0;r<rows&&totalPlaced<totalNeeded;r++){
+      for(let c=0;c<cols;c++){
+        if(covered[r][c])continue;
+        const nb=getNeighbors(r,c);
+        const valid=[];
+        for(const[nr,nc]of nb){
+          const key=domKey(g[r][c],g[nr][nc]);
+          if(!placedDoms.has(key))valid.push({nr,nc,key});
+        }
+        if(valid.length===1){
+          place(r,c,valid[0].nr,valid[0].nc);
+          l2steps++;
+          if(maxLevel<2)maxLevel=2;
+          changed=true;
+          break;
+        }
+      }
+      if(changed)break;
+    }
+  }
+  let level;
+  if(totalPlaced>=totalNeeded){
+    level=(maxLevel<=1)?'easy':'medium';
+  } else {
+    level='hard';
+  }
+  return {level, maxLevel, l1steps, l2steps, solved:totalPlaced>=totalNeeded};
+}
+
+// === SOLVER ===
+function countSolutions(g,maxNum,maxCount=3){
+  const rows=g.length,cols=g[0].length;
+  const used=Array.from({length:rows},()=>Array(cols).fill(false));
+  const domUsed=new Set();
+  let count=0;
+  function domKey(a,b){return a<=b?a*100+b:b*100+a}
+  function solve(pos){
+    while(pos<rows*cols){
+      const r=Math.floor(pos/cols),c=pos%cols;
+      if(!used[r][c])break;
+      pos++;
+    }
+    if(pos>=rows*cols){count++;return count>=maxCount}
+    const r=Math.floor(pos/cols),c=pos%cols;
+    const neighbors=[[r,c+1],[r+1,c],[r,c-1],[r-1,c]];
+    for(const[nr,nc]of neighbors){
+      if(nr<0||nr>=rows||nc<0||nc>=cols||used[nr][nc])continue;
+      const key=domKey(g[r][c],g[nr][nc]);
+      if(domUsed.has(key))continue;
+      used[r][c]=used[nr][nc]=true;
+      domUsed.add(key);
+      if(solve(pos+1))return true;
+      used[r][c]=used[nr][nc]=false;
+      domUsed.delete(key);
+    }
+    return false;
+  }
+  solve(0);
+  return count;
+}
+
+// === GAME STATE ===
+function initGame(){
+  pairs=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  selected=null;moves=0;hints=0;seconds=0;gameWon=false;history=[];
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{if(!gameWon){seconds++;updateTimer()}},1000);
+  updateTimer();updateStats();
+}
+
+function newGame(customSeed){
+  _shortUrl=null;
+  seed=customSeed||Math.floor(Date.now()/1000);
+  generatePuzzle(seed);
+  initGame();
+  renderBoard();
+  renderReference();
+  renderDiffBadge();
+  document.getElementById('seedDisplay').textContent='Seed: '+seed;
+  document.getElementById('winOverlay').classList.remove('show');
+}
+
+function promptSeed(){
+  const s=prompt(T('seedPrompt'),seed);
+  if(s&&!isNaN(parseInt(s)))newGame(parseInt(s));
+}
+
+function renderDiffBadge(){
+  const el=document.getElementById('diffLabel');
+  const labels={easy:T('diffEasy'),medium:T('diffMedium'),hard:T('diffHard')};
+  el.innerHTML='<span class="diff-badge '+currentDifficulty+'">'+(labels[currentDifficulty]||currentDifficulty)+'</span>';
+}
+
+// === RENDERING ===
+function renderBoard(){
+  const board=document.getElementById('board');
+  board.style.gridTemplateColumns='repeat('+COLS+',auto)';
+  board.innerHTML='';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.dataset.r=r;cell.dataset.c=c;
+      cell.textContent=grid[r][c];
+      cell.addEventListener('click',()=>onCellClick(r,c));
+      board.appendChild(cell);
+    }
+  }
+  updateBoardVisuals();
+}
+
+function updateBoardVisuals(){
+  const cells=document.querySelectorAll('.cell');
+  cells.forEach(cell=>{
+    const r=+cell.dataset.r,c=+cell.dataset.c;
+    cell.className='cell';
+    if(pairs[r][c]){
+      cell.classList.add('paired');
+      const p=pairs[r][c];
+      if(p.c===c+1)cell.classList.add('no-border-right');
+      if(p.c===c-1)cell.classList.add('no-border-left');
+      if(p.r===r+1)cell.classList.add('no-border-bottom');
+      if(p.r===r-1)cell.classList.add('no-border-top');
+    }
+    if(selected&&selected.r===r&&selected.c===c){
+      cell.classList.add('selected');
+    }
+  });
+  checkDuplicates();
+}
+
+function checkDuplicates(){
+  const domCount={};
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const p=pairs[r][c];
+    if(p&&(r<p.r||(r===p.r&&c<p.c))){
+      const a=grid[r][c],b=grid[p.r][p.c];
+      const key=Math.min(a,b)*100+Math.max(a,b);
+      domCount[key]=(domCount[key]||0)+1;
+    }
+  }
+  const cells=document.querySelectorAll('.cell');
+  cells.forEach(cell=>{
+    const r=+cell.dataset.r,c=+cell.dataset.c;
+    const p=pairs[r][c];
+    if(p){
+      const a=grid[r][c],b=grid[p.r][p.c];
+      const key=Math.min(a,b)*100+Math.max(a,b);
+      if(domCount[key]>1)cell.classList.add('error');
+    }
+  });
+}
+
+function renderReference(){
+  const refGrid=document.getElementById('refGrid');
+  refGrid.innerHTML='';
+  const placedDoms=getPlacedDominoes();
+  const domCount={};
+  placedDoms.forEach(k=>{domCount[k]=(domCount[k]||0)+1});
+  for(let a=0;a<=MAX_NUM;a++){
+    for(let b=a+1;b<=MAX_NUM;b++){
+      const div=document.createElement('div');
+      div.className='ref-domino';
+      const key=a*100+b;
+      if(domCount[key]===1)div.classList.add('used');
+      else if(domCount[key]>1)div.classList.add('duplicate');
+      div.innerHTML=a+'<span class="ref-dot"></span>'+b;
+      refGrid.appendChild(div);
+    }
+  }
+  document.getElementById('progress').textContent=new Set(placedDoms.filter(k=>domCount[k]===1)).size+'/'+TOTAL_DOMINOES;
+}
+
+function getPlacedDominoes(){
+  const placed=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const p=pairs[r][c];
+    if(p&&(r<p.r||(r===p.r&&c<p.c))){
+      const a=grid[r][c],b=grid[p.r][p.c];
+      placed.push(Math.min(a,b)*100+Math.max(a,b));
+    }
+  }
+  return placed;
+}
+
+// === INTERACTION ===
+function onCellClick(r,c){
+  if(gameWon)return;
+  if(pairs[r][c]&&!(selected&&selected.r===r&&selected.c===c)){
+    const p=pairs[r][c];
+    history.push({type:'unpair',r1:r,c1:c,r2:p.r,c2:p.c});
+    pairs[r][c]=null;
+    pairs[p.r][p.c]=null;
+    selected=null;moves++;
+    updateBoardVisuals();renderReference();updateStats();
+    return;
+  }
+  if(!selected){
+    selected={r,c};
+    updateBoardVisuals();
+    return;
+  }
+  if(selected.r===r&&selected.c===c){
+    selected=null;
+    updateBoardVisuals();
+    return;
+  }
+  const dr=Math.abs(selected.r-r),dc=Math.abs(selected.c-c);
+  if((dr===1&&dc===0)||(dr===0&&dc===1)){
+    const undos=[];
+    if(pairs[selected.r][selected.c]){
+      const p=pairs[selected.r][selected.c];
+      undos.push({r1:selected.r,c1:selected.c,r2:p.r,c2:p.c});
+      pairs[p.r][p.c]=null;
+      pairs[selected.r][selected.c]=null;
+    }
+    if(pairs[r][c]){
+      const p=pairs[r][c];
+      undos.push({r1:r,c1:c,r2:p.r,c2:p.c});
+      pairs[p.r][p.c]=null;
+      pairs[r][c]=null;
+    }
+    pairs[selected.r][selected.c]={r,c};
+    pairs[r][c]={r:selected.r,c:selected.c};
+    history.push({type:'pair',r1:selected.r,c1:selected.c,r2:r,c2:c,undos});
+    selected=null;moves++;
+    updateBoardVisuals();renderReference();updateStats();
+    checkWin();
+    return;
+  }
+  selected={r,c};
+  updateBoardVisuals();
+}
+
+function undoLast(){
+  if(!history.length||gameWon)return;
+  const action=history.pop();
+  if(action.type==='pair'){
+    pairs[action.r1][action.c1]=null;
+    pairs[action.r2][action.c2]=null;
+    if(action.undos){
+      action.undos.forEach(u=>{
+        pairs[u.r1][u.c1]={r:u.r2,c:u.c2};
+        pairs[u.r2][u.c2]={r:u.r1,c:u.c1};
+      });
+    }
+  } else if(action.type==='unpair'){
+    pairs[action.r1][action.c1]={r:action.r2,c:action.c2};
+    pairs[action.r2][action.c2]={r:action.r1,c:action.c1};
+  }
+  selected=null;moves++;
+  updateBoardVisuals();renderReference();updateStats();
+}
+
+// === HINT ===
+function giveHint(){
+  if(gameWon)return;
+  for(const s of solution){
+    const[r1,c1,r2,c2]=s;
+    const p1=pairs[r1][c1];
+    if(p1&&p1.r===r2&&p1.c===c2)continue;
+    if(pairs[r1][c1]){
+      const p=pairs[r1][c1];
+      pairs[p.r][p.c]=null;pairs[r1][c1]=null;
+    }
+    if(pairs[r2][c2]){
+      const p=pairs[r2][c2];
+      pairs[p.r][p.c]=null;pairs[r2][c2]=null;
+    }
+    pairs[r1][c1]={r:r2,c:c2};
+    pairs[r2][c2]={r:r1,c:c1};
+    hints++;moves++;
+    history.push({type:'pair',r1,c1,r2,c2,undos:[]});
+    selected=null;
+    updateBoardVisuals();renderReference();updateStats();
+    const cells=document.querySelectorAll('.cell');
+    cells.forEach(cell=>{
+      const cr=+cell.dataset.r,cc=+cell.dataset.c;
+      if((cr===r1&&cc===c1)||(cr===r2&&cc===c2))cell.classList.add('hint-highlight');
+    });
+    checkWin();
+    return;
+  }
+}
+
+// === WIN CHECK ===
+function checkWin(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(!pairs[r][c])return;
+  }
+  const placed=getPlacedDominoes();
+  const unique=new Set(placed);
+  if(unique.size!==TOTAL_DOMINOES)return;
+  if(placed.length!==TOTAL_DOMINOES)return;
+  gameWon=true;
+  clearInterval(timerInterval);
+  showWin();
+}
+
+function calcStars(){
+  if(hints>0)return 1;
+  const par={10:45,15:90,21:150};
+  const p=par[TOTAL_DOMINOES]||120;
+  if(seconds<=p&&moves<=TOTAL_DOMINOES*2)return 3;
+  if(seconds<=p*2)return 2;
+  return 1;
+}
+
+function showWin(){
+  const stars=calcStars();
+  document.getElementById('winStars').textContent='\u2605'.repeat(stars)+'\u2606'.repeat(3-stars);
+  document.getElementById('winTime').textContent=T('winTime')+formatTime(seconds);
+  document.getElementById('winMoves').textContent=T('winMoves')+moves+(hints?T('winHints')+hints:'');
+  document.getElementById('winOverlay').classList.add('show');
+}
+
+// === SHARE ===
+function makeHash(s,sz,t,m,h){
+  let v=seed^(sz*7919)^(t*6271)^(m*3581)^(h*1049)^0xDEAD;
+  v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
+  return(v>>>0).toString(36);
+}
+function generateResultImage(url){
+  return new Promise(function(resolve){
+    const W=600,H=400;
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const x=cv.getContext('2d');
+    // BG
+    x.fillStyle='#080c18';x.fillRect(0,0,W,H);
+    // Glow
+    const g=x.createRadialGradient(300,160,30,300,160,250);
+    g.addColorStop(0,'#3b82f620');g.addColorStop(1,'transparent');
+    x.fillStyle=g;x.fillRect(0,0,W,H);
+    // Logo triangle
+    const cx=300,cy=80,s=40,h=s*Math.sqrt(3)/2;
+    const tx=cx,ty=cy-h*0.6,lx=cx-s/2,ly=cy+h*0.4,rx=cx+s/2,ry=cy+h*0.4;
+    x.beginPath();x.moveTo(tx,ty);x.lineTo(lx,ly);x.lineTo(rx,ry);x.closePath();
+    x.fillStyle='#3b82f615';x.fill();x.strokeStyle='#3b82f6';x.lineWidth=1.5;x.stroke();
+    function drawSq(x1,y1,x2,y2,dots){
+      const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+      const nx=-dy/len*len/2,ny=dx/len*len/2;
+      const p3x=x2+nx,p3y=y2+ny,p4x=x1+nx,p4y=y1+ny;
+      x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.lineTo(p3x,p3y);x.lineTo(p4x,p4y);x.closePath();
+      x.fillStyle='#1e293b';x.fill();x.strokeStyle='#3b82f6';x.lineWidth=1.5;x.stroke();
+      const sc=(x1+x2+p3x+p4x)/4,sy2=(y1+y2+p3y+p4y)/4;
+      x.fillStyle='#f1f5f9';
+      if(dots===1){x.beginPath();x.arc(sc,sy2,3,0,Math.PI*2);x.fill()}
+      if(dots===2){x.beginPath();x.arc(sc-4,sy2-4,3,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc+4,sy2+4,3,0,Math.PI*2);x.fill()}
+      if(dots===3){x.beginPath();x.arc(sc-5,sy2-5,2.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc,sy2,2.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(sc+5,sy2+5,2.5,0,Math.PI*2);x.fill()}
+    }
+    drawSq(lx,ly,rx,ry,3);drawSq(tx,ty,lx,ly,1);drawSq(rx,ry,tx,ty,2);
+    // Title
+    x.fillStyle='#f1f5f9';x.font='bold 36px sans-serif';x.textAlign='center';
+    x.fillText(T('title'),300,150);
+    // Stars
+    const st=calcStars();
+    const starStr='\u2605'.repeat(st)+'\u2606'.repeat(3-st);
+    x.font='40px sans-serif';x.fillStyle='#fbbf24';
+    x.fillText(starStr,300,200);
+    // Size + Difficulty
+    const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
+    const diffLabels={easy:T('diffEasy'),medium:T('diffMedium'),hard:T('diffHard')};
+    x.font='20px sans-serif';x.fillStyle='#64748b';
+    x.fillText((sizeNames[TOTAL_DOMINOES]||'')+' \u00b7 '+(diffLabels[currentDifficulty]||''),300,235);
+    // Time + Moves
+    x.font='bold 28px sans-serif';x.fillStyle='#e2e8f0';
+    x.fillText(formatTime(seconds)+' \u00b7 '+moves+T('shareMoves')+(hints?' \u00b7 '+hints+T('shareHints'):''),300,275);
+    // URL
+    x.font='16px sans-serif';x.fillStyle='#3b82f6';
+    x.fillText(T('shareVerify'),300,320);
+    x.font='14px sans-serif';x.fillStyle='#60a5fa';
+    // Truncate URL if too long
+    const displayUrl=url.length>60?url.substring(0,57)+'...':url;
+    x.fillText(displayUrl,300,342);
+    // Footer
+    x.font='12px sans-serif';x.fillStyle='#334155';
+    x.fillText('constarik.github.io/Dominosa',300,380);
+    cv.toBlob(function(blob){resolve(blob)},'image/png');
+  });
+}
+function getShareData(){
+  const stars='\u2605'.repeat(calcStars())+'\u2606'.repeat(3-calcStars());
+  const sizeNames={10:'4\u00d75',15:'5\u00d76',21:'6\u00d77'};
+  const diffIcons={easy:'\ud83d\udfe2',medium:'\ud83d\udfe1',hard:'\ud83d\udd34'};
+  const hh=makeHash(seed,TOTAL_DOMINOES,seconds,moves,hints);
+  const longUrl='https://constarik.github.io/Dominosa/?v=1&s='+seed+'&sz='+TOTAL_DOMINOES+'&t='+seconds+'&m='+moves+'&h='+hints+'&d='+currentDifficulty+'&c='+hh;
+  const text=T('shareText')+' '+(sizeNames[TOTAL_DOMINOES]||'')+' '+(diffIcons[currentDifficulty]||'')+'\n'+stars+' '+formatTime(seconds)+' \u00b7 '+moves+T('shareMoves')+(hints?' \u00b7 '+hints+T('shareHints'):'');
+  return {text,longUrl};
+}
+let _shortUrl=null;
+function getShortUrl(cb){
+  const d=getShareData();
+  if(_shortUrl){cb(_shortUrl,d);return;}
+  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(d.longUrl))
+    .then(r=>r.text()).then(s=>{_shortUrl=s.trim();cb(_shortUrl,d)})
+    .catch(()=>cb(d.longUrl,d));
+}
+function shareToX(){
+  getShortUrl(function(url,d){
+    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(d.text+'\n\n'+T('shareVerify')+url),'_blank');
+  });
+}
+function shareToFB(){
+  getShortUrl(function(url,d){
+    const t=d.text+'\n\n'+T('shareVerify')+url;
+    clipCopy(t,function(){});
+    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),'_blank');
+  });
+}
+function shareToVK(){
+  getShortUrl(function(url,d){
+    window.open('https://vk.com/share.php?url='+encodeURIComponent(url)+'&title='+encodeURIComponent(d.text),'_blank');
+  });
+}
+function shareToOK(){
+  getShortUrl(function(url,d){
+    window.open('https://connect.ok.ru/offer?url='+encodeURIComponent(url)+'&title='+encodeURIComponent(d.text),'_blank');
+  });
+}
+function shareResult(){
+  const copyBtn=document.querySelector('.share-btn.copy');
+  function feedback(msg){if(copyBtn){const o=copyBtn.textContent;copyBtn.textContent=msg;setTimeout(()=>copyBtn.textContent=o,2000)}}
+  feedback('\u23f3');
+  getShortUrl(function(url,d){
+    const t=d.text+'\n\n'+T('shareVerify')+url;
+    clipCopy(t,feedback);
+  });
+}
+function shareImage(){
+  const imgBtn=document.querySelector('.share-btn[style]');
+  function feedback(msg){if(imgBtn){const o=imgBtn.textContent;imgBtn.textContent=msg;setTimeout(()=>imgBtn.textContent=o,2000)}}
+  feedback('\u23f3');
+  getShortUrl(function(url,d){
+    generateResultImage(url).then(function(blob){
+      const file=new File([blob],T('title')+'-result.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({text:d.text+'\n\n'+T('shareVerify')+url,files:[file]}).then(()=>feedback('\u2705')).catch(()=>downloadImage(blob,feedback));
+      } else {
+        downloadImage(blob,feedback);
+      }
+    });
+  });
+}
+function downloadImage(blob,fb){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=T('title')+'-result.png';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  fb('\u2b07\ufe0f');
+}
+function clipCopy(t,fb){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>fb('\u2705')).catch(()=>taCopy(t,fb))}else taCopy(t,fb);
+}
+function taCopy(t,fb){
+  const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');fb('\u2705')}catch(e){fb('\u274c')}
+  document.body.removeChild(ta);
+}
+
+// === SHOW SOLUTION ===
+function showSolution(){
+  if(gameWon)return;
+  if(!confirm(T('confirmSolution')))return;
+  for(const s of solution){
+    const[r1,c1,r2,c2]=s;
+    pairs[r1][c1]={r:r2,c:c2};
+    pairs[r2][c2]={r:r1,c:c1};
+  }
+  gameWon=true;
+  clearInterval(timerInterval);
+  selected=null;
+  updateBoardVisuals();renderReference();updateStats();
+}
+
+// === UTILS ===
+function formatTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function updateTimer(){document.getElementById('timer').textContent=formatTime(seconds)}
+function updateStats(){
+  document.getElementById('moveCount').textContent=moves;
+  document.getElementById('hintCount').textContent=hints;
+}
+
+// === URL PARAMS ===
+function parseParams(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('seed'))return{seed:parseInt(p.get('seed')),size:parseInt(p.get('size'))||5,diff:p.get('diff')||'any'};
+  return null;
+}
+
+// === INIT ===
+window.addEventListener('load',()=>{
+  loadTheme();
+  loadLang();
+  applyLang();
+  maybeShowTutorial();
+  const params=parseParams();
+  if(params){
+    document.getElementById('sizeSelect').value=params.size;
+    document.getElementById('diffSelect').value=params.diff;
+    newGame(params.seed);
+  }else{
+    newGame();
+  }
+});
+
+// === TUTORIAL ===
+function showTutorial(){
+  document.getElementById('tutorialOverlay').classList.add('show');
+}
+function closeTutorial(){
+  document.getElementById('tutorialOverlay').classList.remove('show');
+  if(document.getElementById('tutDontShow').checked){
+    try{localStorage.setItem('dominosa-notut','1')}catch(e){}
+  }
+}
+function maybeShowTutorial(){
+  try{if(localStorage.getItem('dominosa-notut'))return}catch(e){}
+  showTutorial();
+}
+
+// === DAILY PUZZLE ===
+function dailyPuzzle(){
+  const d=new Date();
+  const ds=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+  document.getElementById('sizeSelect').value='5';
+  document.getElementById('diffSelect').value='medium';
+  newGame(ds);
+}
+
+// === THEMES ===
+function setTheme(t){
+  if(t)document.documentElement.setAttribute('data-theme',t);
+  else document.documentElement.removeAttribute('data-theme');
+  try{localStorage.setItem('dominosa-theme',t)}catch(e){}
+}
+function loadTheme(){
+  try{
+    const t=localStorage.getItem('dominosa-theme')||'';
+    if(t)document.documentElement.setAttribute('data-theme',t);
+    document.getElementById('themeSelect').value=t;
+  }catch(e){}
+}
+
+// === TOUCH SWIPE ===
+let touchStartCell=null;
+let touchMoved=false;
+
+function getCellFromTouch(e){
+  const t=e.changedTouches?e.changedTouches[0]:e;
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  if(el&&el.classList.contains('cell'))return{r:+el.dataset.r,c:+el.dataset.c};
+  return null;
+}
+
+document.getElementById('board').addEventListener('touchstart',function(e){
+  touchStartCell=getCellFromTouch(e);
+  touchMoved=false;
+},{passive:true});
+
+document.getElementById('board').addEventListener('touchmove',function(e){
+  touchMoved=true;
+  const cell=getCellFromTouch(e);
+  if(touchStartCell&&cell){
+    const dr=Math.abs(touchStartCell.r-cell.r),dc=Math.abs(touchStartCell.c-cell.c);
+    if((dr===1&&dc===0)||(dr===0&&dc===1)){
+      selected=touchStartCell;
+      updateBoardVisuals();
+    }
+  }
+},{passive:true});
+
+document.getElementById('board').addEventListener('touchend',function(e){
+  if(!touchMoved||!touchStartCell){touchStartCell=null;return;}
+  const endCell=getCellFromTouch(e);
+  if(!endCell){touchStartCell=null;return;}
+  const sr=touchStartCell.r,sc=touchStartCell.c,er=endCell.r,ec=endCell.c;
+  if(sr===er&&sc===ec){touchStartCell=null;return;}
+  const dr=Math.abs(sr-er),dc=Math.abs(sc-ec);
+  if((dr===1&&dc===0)||(dr===0&&dc===1)){
+    e.preventDefault();
+    selected={r:sr,c:sc};
+    onCellClick(er,ec);
+  }
+  touchStartCell=null;
+});
+
+document.getElementById('sizeSelect').addEventListener('change',()=>newGame());
+document.getElementById('diffSelect').addEventListener('change',()=>newGame());
+</script>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRP1QX4878"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-TRP1QX4878');</script>
+</body>
+</html>
