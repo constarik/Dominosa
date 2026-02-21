@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dominosa — Number Domino Puzzle</title>
+<meta name="description" content="Dominosa is a pure logic puzzle where you find hidden domino boundaries in a grid of numbers. Free, no ads, no login. Play now.">
+<meta property="og:title" content="Dominosa — Number Domino Puzzle">
+<meta property="og:description" content="A pure logic puzzle. Find the hidden domino boundaries in a grid of numbers. No guessing required. Free, no ads, no login.">
+<meta property="og:url" content="https://constarik.github.io/Dominosa/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://constarik.github.io/Dominosa/og-image.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dominosa — Number Domino Puzzle">
+<meta name="twitter:description" content="A pure logic puzzle. Find the hidden domino boundaries. Free, no ads, no login.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080c18;--card:#111827;--accent:#3b82f6;--accent2:#60a5fa;--glow:#3b82f640;--text:#e2e8f0;--dim:#64748b;--green:#22c55e;--amber:#f59e0b;--red:#ef4444}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+/* === HERO === */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,var(--glow) 0%,transparent 70%);pointer-events:none;animation:pulseGlow 6s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{opacity:.4;transform:translateX(-50%) scale(1)}50%{opacity:.7;transform:translateX(-50%) scale(1.15)}}
+.hero-badge{display:inline-block;padding:6px 16px;border-radius:20px;background:#22c55e18;border:1px solid #22c55e40;color:var(--green);font-size:.8rem;font-weight:700;letter-spacing:.05em;margin-bottom:24px;animation:fadeInDown .8s ease}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(3rem,8vw,6rem);line-height:1;margin-bottom:16px;background:linear-gradient(135deg,#fff 30%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fadeInDown .8s ease .1s both}
+.hero .tagline{font-size:clamp(1.1rem,2.5vw,1.4rem);color:var(--dim);max-width:480px;line-height:1.5;margin-bottom:40px;animation:fadeInDown .8s ease .2s both}
+.cta-group{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeInDown .8s ease .3s both}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:1rem;font-weight:700;text-decoration:none;transition:all .25s;cursor:pointer;border:none}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 24px var(--glow)}
+.btn-primary:hover{background:#2563eb;transform:translateY(-2px);box-shadow:0 8px 32px var(--glow)}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid #334155}
+.btn-secondary:hover{border-color:var(--accent);background:#1e293b}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+/* === DEMO GRID === */
+.demo-section{padding:60px 20px;display:flex;justify-content:center}
+.demo-grid{display:grid;grid-template-columns:repeat(6,48px);gap:0;animation:fadeIn 1s ease .5s both;user-select:none}
+.demo-cell{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;border:2px solid #334155;background:var(--card);color:var(--dim);transition:all .4s}
+.demo-cell.paired{background:#1e3a5f;border-color:var(--accent);color:var(--text)}
+.demo-cell.paired.no-r{border-right-color:#1e3a5f}
+.demo-cell.paired.no-l{border-left-color:#1e3a5f}
+.demo-cell.paired.no-t{border-top-color:#1e3a5f}
+.demo-cell.paired.no-b{border-bottom-color:#1e3a5f}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* === FEATURES === */
+.features{padding:80px 20px;max-width:900px;margin:0 auto}
+.features h2{font-family:'DM Serif Display',serif;font-size:2rem;text-align:center;margin-bottom:48px;color:var(--text)}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.feat-card{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:24px;transition:all .3s}
+.feat-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.feat-icon{font-size:1.8rem;margin-bottom:12px}
+.feat-card h3{font-size:1rem;font-weight:700;margin-bottom:8px;color:var(--accent2)}
+.feat-card p{font-size:.85rem;color:var(--dim);line-height:1.5}
+/* === HOW TO === */
+.howto{padding:80px 20px;max-width:700px;margin:0 auto}
+.howto h2{font-family:'DM Serif Display',serif;font-size:2rem;text-align:center;margin-bottom:48px}
+.steps{display:flex;flex-direction:column;gap:24px}
+.step{display:flex;gap:20px;align-items:flex-start}
+.step-num{width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem}
+.step-text h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.step-text p{font-size:.85rem;color:var(--dim);line-height:1.5}
+/* === DIFFICULTY === */
+.diff-section{padding:80px 20px;max-width:700px;margin:0 auto;text-align:center}
+.diff-section h2{font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:16px}
+.diff-section .sub{color:var(--dim);margin-bottom:40px;font-size:.95rem}
+.diff-cards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.diff-card{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:20px 28px;min-width:160px;transition:all .3s}
+.diff-card:hover{transform:translateY(-4px)}
+.diff-card .dot{width:12px;height:12px;border-radius:50%;margin:0 auto 10px}
+.diff-card.easy .dot{background:var(--green)}
+.diff-card.medium .dot{background:var(--amber)}
+.diff-card.hard .dot{background:var(--red)}
+.diff-card h3{font-size:1rem;margin-bottom:6px}
+.diff-card p{font-size:.8rem;color:var(--dim);line-height:1.4}
+/* === FOOTER CTA === */
+.footer-cta{padding:80px 20px;text-align:center;position:relative}
+.footer-cta::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(circle,var(--glow) 0%,transparent 70%);pointer-events:none;opacity:.3}
+.footer-cta h2{font-family:'DM Serif Display',serif;font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:12px}
+.footer-cta p{color:var(--dim);margin-bottom:32px;font-size:1rem}
+.footer{padding:24px 20px;text-align:center;color:var(--dim);font-size:.75rem;border-top:1px solid #1e293b}
+.footer a{color:var(--accent2);text-decoration:none}
+/* Verification banner */
+.verify-banner{display:none;margin:0 auto;padding:20px 24px;text-align:center;max-width:600px;border-radius:0 0 16px 16px;animation:slideBanner .5s ease}
+.verify-banner.verified{display:block;background:linear-gradient(135deg,#065f4620,#22c55e20);border:1px solid #22c55e40;border-top:none}
+.verify-banner.failed{display:block;background:linear-gradient(135deg,#7f1d1d20,#ef444420);border:1px solid #ef444440;border-top:none}
+.verify-banner .vb-icon{font-size:2rem;margin-bottom:8px}
+.verify-banner .vb-title{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.verify-banner.verified .vb-title{color:#22c55e}
+.verify-banner.failed .vb-title{color:#ef4444}
+.verify-banner .vb-details{font-size:.9rem;color:var(--dim);line-height:1.6}
+.verify-banner .vb-details b{color:var(--text)}
+.verify-banner .vb-cta{display:inline-block;margin-top:12px;padding:8px 24px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem}
+.verify-banner .vb-cta:hover{background:#2563eb}
+@keyframes slideBanner{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+/* === MOBILE === */
+@media(max-width:500px){
+  .demo-grid{grid-template-columns:repeat(6,38px)}
+  .demo-cell{width:38px;height:38px;font-size:1rem}
+  .feat-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- VERIFICATION BANNER -->
+<div id="verifyBanner" class="verify-banner"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">FREE &bull; NO ADS &bull; NO LOGIN</div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="72" height="58" style="margin-bottom:8px">
+  <defs><linearGradient id="la" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs>
+  <polygon points="100,65 80,99.5 120,99.5" fill="url(#la)" opacity=".15" stroke="#3b82f6" stroke-width="1.5"/>
+  <polygon points="80,99.5 120,99.5 120,139.5 80,139.5" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <circle cx="90" cy="109.5" r="3.5" fill="#f1f5f9"/><circle cx="100" cy="119.5" r="3.5" fill="#f1f5f9"/><circle cx="110" cy="129.5" r="3.5" fill="#f1f5f9"/>
+  <polygon points="100,65 80,99.5 45.4,79.5 65.4,45" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <circle cx="72.7" cy="72.2" r="3.5" fill="#f1f5f9"/>
+  <polygon points="100,65 120,99.5 154.6,79.5 134.6,45" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <circle cx="120.4" cy="76.2" r="3.5" fill="#f1f5f9"/><circle cx="134.2" cy="68.2" r="3.5" fill="#f1f5f9"/>
+  </svg>
+  <h1>Dominosa</h1>
+  <p class="tagline">A pure logic puzzle. Find the hidden domino boundaries in a grid of numbers. No guessing required.</p>
+  <div class="cta-group">
+    <a href="dominosa.html" class="btn btn-primary">&#9654; Play Now</a>
+    <a href="dominosa.html?diff=easy" class="btn btn-secondary">Try Easy Mode</a>
+  </div>
+</section>
+
+<!-- ANIMATED DEMO -->
+<section class="demo-section">
+  <div class="demo-grid" id="demoGrid"></div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <h2>Why You'll Love It</h2>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon">&#x1f9e0;</div>
+      <h3>Pure Logic</h3>
+      <p>Every puzzle is solvable through deduction alone. No guessing, no luck, no randomness in gameplay.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">&#x1f4ca;</div>
+      <h3>3 Difficulty Levels</h3>
+      <p>AI-rated puzzles from Easy (forced moves) to Hard (requires trial-and-error). Pick your challenge.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">&#x1f4c5;</div>
+      <h3>Daily Puzzle</h3>
+      <p>Same puzzle for everyone, every day. Compare your time with friends.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">&#x1f3a8;</div>
+      <h3>5 Themes</h3>
+      <p>Dark, Ocean, Forest, Sunset, and Light. Play in the mood that suits you.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">&#x1f4f1;</div>
+      <h3>Mobile-First</h3>
+      <p>Tap-tap or swipe to pair. Works perfectly on any screen size, any device.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">&#x267b;&#xfe0f;</div>
+      <h3>Infinite Puzzles</h3>
+      <p>Seeded generator creates unlimited unique puzzles. Share a seed, challenge a friend.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO PLAY -->
+<section class="howto">
+  <h2>How to Play</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <h3>Look at the grid</h3>
+        <p>The grid is filled with numbers. Hidden beneath are dominoes — each covering exactly two adjacent cells.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <h3>Pair adjacent cells</h3>
+        <p>Tap a cell, then tap its neighbor to form a domino pair. Or swipe between them on mobile.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <h3>Use every domino exactly once</h3>
+        <p>Each number combination (like 2•5) appears exactly once. Duplicates light up red. Fill the whole grid to win.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFFICULTY -->
+<section class="diff-section">
+  <h2>Choose Your Challenge</h2>
+  <p class="sub">Every puzzle is rated by a logical solver that determines what techniques you'll need.</p>
+  <div class="diff-cards">
+    <div class="diff-card easy">
+      <div class="dot"></div>
+      <h3>Easy</h3>
+      <p>Each domino can only go in one place. Scan and place.</p>
+    </div>
+    <div class="diff-card medium">
+      <div class="dot"></div>
+      <h3>Medium</h3>
+      <p>Requires elimination — some cells have only one valid partner.</p>
+    </div>
+    <div class="diff-card hard">
+      <div class="dot"></div>
+      <h3>Hard</h3>
+      <p>Logic alone isn't enough. You'll need to test hypotheses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section class="footer-cta">
+  <h2>Ready to Play?</h2>
+  <p>No downloads. No signups. Just puzzles.</p>
+  <a href="dominosa.html" class="btn btn-primary">&#9654; Start Playing</a>
+</section>
+
+<footer class="footer">
+  Dominosa &mdash; an <a href="https://github.com/">Uncloned Math</a> puzzle &bull; No doubles variant
+</footer>
+
+<!-- VERIFICATION -->
+<script>
+(function(){
+  const p=new URLSearchParams(location.search);
+  if(!p.has('v'))return;
+  const seed=+p.get('s'),sz=+p.get('sz'),t=+p.get('t'),m=+p.get('m'),h=+p.get('h'),d=p.get('d'),c=p.get('c');
+  // Reproduce hash
+  function makeHash(s,sz,t,m,h){
+    let v=s^(sz*7919)^(t*6271)^(m*3581)^(h*1049)^0xDEAD;
+    v=((v>>>16)^v)*0x45d9f3b;v=((v>>>16)^v)*0x45d9f3b;v=(v>>>16)^v;
+    return(v>>>0).toString(36);
+  }
+  const valid=makeHash(seed,sz,t,m,h)===c;
+  const banner=document.getElementById('verifyBanner');
+  const sizeNames={10:'4×5',15:'5×6',21:'6×7'};
+  const diffLabels={easy:'Easy',medium:'Medium',hard:'Hard'};
+  const mins=Math.floor(t/60),secs=String(t%60).padStart(2,'0');
+  if(valid){
+    banner.className='verify-banner verified';
+    banner.innerHTML='<div class="vb-icon">✅</div>'+
+      '<div class="vb-title">Result Verified</div>'+
+      '<div class="vb-details">'+
+        '<b>'+sizeNames[sz]+'</b> · '+(diffLabels[d]||d)+'<br>'+
+        '⏱ <b>'+mins+':'+secs+'</b> · <b>'+m+'</b> moves'+(h>0?' · <b>'+h+'</b> hints':'')+'<br>'+
+        'Seed: '+seed+
+      '</div>'+
+      '<a class="vb-cta" href="dominosa.html?seed='+seed+'&size='+({10:4,15:5,21:6}[sz]||5)+'&diff='+d+'">Play the same puzzle</a>';
+  } else {
+    banner.className='verify-banner failed';
+    banner.innerHTML='<div class="vb-icon">❌</div>'+
+      '<div class="vb-title">Verification Failed</div>'+
+      '<div class="vb-details">This result could not be verified. The link may have been modified.</div>'+
+      '<a class="vb-cta" href="dominosa.html">Play Dominosa</a>';
+  }
+  banner.scrollIntoView({behavior:'smooth'});
+})();
+</script>
+
+<!-- DEMO ANIMATION -->
+<script>
+(function(){
+  const nums=[
+    [3,1,4,0,2,3],
+    [2,0,4,1,3,0],
+    [1,4,2,3,0,2],
+    [4,1,3,4,1,2],
+    [0,3,0,1,4,3]
+  ];
+  const pairs=[
+    [0,0,0,1],[0,2,1,2],[0,3,0,4],[0,5,1,5],
+    [1,0,2,0],[1,1,1,2],[1,3,1,4],
+    [2,1,2,2],[2,3,2,4],[2,5,3,5],
+    [3,0,3,1],[3,2,3,3],[3,4,4,4],
+    [4,0,4,1],[4,2,4,3],[4,5,3,5]
+  ];
+  // Simplified: just animate cells pairing one by one
+  const grid=document.getElementById('demoGrid');
+  const cells=[];
+  for(let r=0;r<5;r++){
+    for(let c=0;c<6;c++){
+      const d=document.createElement('div');
+      d.className='demo-cell';
+      d.textContent=nums[r][c];
+      d.dataset.r=r;d.dataset.c=c;
+      grid.appendChild(d);
+      cells.push(d);
+    }
+  }
+  function getCell(r,c){return cells[r*6+c]}
+  
+  const animPairs=[
+    [0,0,0,1],[0,2,1,2],[0,3,0,4],[0,5,1,5],
+    [1,0,2,0],[1,1,2,1],[1,3,1,4],
+    [2,2,2,3],[2,4,2,5],
+    [3,0,3,1],[3,2,3,3],[3,4,4,4],[3,5,4,5],
+    [4,0,4,1],[4,2,4,3]
+  ];
+  
+  let idx=0;
+  function animateNext(){
+    if(idx>=animPairs.length){
+      setTimeout(()=>{
+        cells.forEach(c=>{c.className='demo-cell'});
+        idx=0;
+        setTimeout(animateNext,1500);
+      },3000);
+      return;
+    }
+    const[r1,c1,r2,c2]=animPairs[idx];
+    const a=getCell(r1,c1),b=getCell(r2,c2);
+    a.classList.add('paired');
+    b.classList.add('paired');
+    if(c2===c1+1){a.classList.add('no-r');b.classList.add('no-l')}
+    if(c2===c1-1){a.classList.add('no-l');b.classList.add('no-r')}
+    if(r2===r1+1){a.classList.add('no-b');b.classList.add('no-t')}
+    if(r2===r1-1){a.classList.add('no-t');b.classList.add('no-b')}
+    idx++;
+    setTimeout(animateNext,350);
+  }
+  setTimeout(animateNext,1200);
+})();
+</script>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRP1QX4878"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-TRP1QX4878');</script>
+</body>
+</html>
